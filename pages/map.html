@@ -1,0 +1,86 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="btn-group shadow-sm" role="group" aria-label="Map Filters">
+        <input type="radio" class="btn-check" name="mapfilter" id="filter-occupancy" autocomplete="off" checked onchange="updateMapMode('occupancy')">
+        <label class="btn btn-outline-secondary btn-sm px-3" for="filter-occupancy"><i class="bi bi-people-fill me-1"></i> Occupation</label>
+
+        <input type="radio" class="btn-check" name="mapfilter" id="filter-thermal" autocomplete="off" onchange="updateMapMode('thermal')">
+        <label class="btn btn-outline-secondary btn-sm px-3" for="filter-thermal"><i class="bi bi-thermometer-half me-1"></i> Thermique</label>
+
+        <input type="radio" class="btn-check" name="mapfilter" id="filter-tech" autocomplete="off" onchange="updateMapMode('tech')">
+        <label class="btn btn-outline-secondary btn-sm px-3" for="filter-tech"><i class="bi bi-router-fill me-1"></i> Équipements</label>
+    </div>
+    
+    <div>
+        <select class="form-select form-select-sm border-0 shadow-sm" style="min-width: 150px;">
+            <option>Étage 1 (Sciences)</option>
+            <option>Étage 2 (Lettres)</option>
+            <option>Étage 3 (Admin)</option>
+        </select>
+    </div>
+</div>
+
+<div class="card-custom p-0 overflow-hidden shadow-sm" style="height: 70vh;">
+    <div class="map-container w-100 h-100 d-flex justify-content-center align-items-center position-relative" id="campus-map">
+        <!-- SVG Map will be injected here by js/map.js -->
+        <p class="text-muted">Chargement du Digital Twin...</p>
+    </div>
+    
+    <!-- Legend Overlay -->
+    <div class="position-absolute bottom-0 start-0 m-3 p-3 bg-white rounded shadow-sm opacity-75" style="pointer-events: none;">
+        <small class="fw-bold d-block mb-2">Légende</small>
+        <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width:10px;height:10px;background:#10b981;"></span>Libre / < 20°C</div>
+        <div class="d-flex align-items-center mb-1"><span class="d-inline-block rounded-circle me-2" style="width:10px;height:10px;background:#f59e0b;"></span>Occupé / 22°C</div>
+        <div class="d-flex align-items-center"><span class="d-inline-block rounded-circle me-2" style="width:10px;height:10px;background:#ef4444;"></span>Saturé / > 24°C</div>
+    </div>
+</div>
+
+
+<!-- Offcanvas Room Details -->
+<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="roomOffcanvas" aria-labelledby="roomOffcanvasLabel">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold" id="roomOffcanvasLabel">Détails Salle</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <div class="p-4 bg-light">
+        <div class="d-flex justify-content-center my-3">
+             <div class="icon-circle bg-white shadow-sm text-primary" style="width: 80px; height: 80px; font-size: 2rem;">
+                <i class="bi bi-door-open-fill"></i>
+             </div>
+        </div>
+        <h3 class="text-center fw-bold text-dark" id="detail-room-id">B201</h3>
+        <p class="text-center text-muted" id="detail-room-type">Salle de Cours</p>
+    </div>
+    
+    <div class="p-4">
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="p-3 border rounded bg-white text-center">
+                    <small class="text-muted d-block mb-1">Température</small>
+                    <span class="fs-5 fw-bold text-primary" id="detail-room-temp">21.5°C</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-3 border rounded bg-white text-center">
+                    <small class="text-muted d-block mb-1">Occupation</small>
+                    <span class="fs-5 fw-bold text-success" id="detail-room-occ">0 / 30</span>
+                </div>
+            </div>
+        </div>
+        
+        <h6 class="fw-bold fs-7 text-uppercase text-muted mb-3">Planning Actuel</h6>
+        <div class="card bg-primary-subtle border-0 mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold mb-1" id="detail-room-schedule">Cours de Chimie</h6>
+                <small class="text-primary-emphasis">08:00 - 10:00 • Pr. Tournesol</small>
+            </div>
+        </div>
+
+        <h6 class="fw-bold fs-7 text-uppercase text-muted mb-3">Actions Rapides</h6>
+        <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary"><i class="bi bi-lightbulb me-2"></i>Allumer/Éteindre</button>
+            <button class="btn btn-outline-danger"><i class="bi bi-exclamation-octagon me-2"></i>Signaler Incident</button>
+        </div>
+    </div>
+  </div>
+</div>

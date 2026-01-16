@@ -1,0 +1,89 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary shadow-sm"><i class="bi bi-plus-lg me-2"></i>Nouveau Ticket</button>
+        <button class="btn btn-light border shadow-sm"><i class="bi bi-funnel me-2"></i>Filtrer</button>
+    </div>
+    <div class="avatar-group d-flex">
+        <!-- Avatars placeholders -->
+        <span class="small text-muted me-2 align-self-center">Équipe active:</span>
+        <div class="avatar-circle bg-warning text-white" style="margin-left:-10px; border:2px solid #fff;">JD</div>
+        <div class="avatar-circle bg-info text-white" style="margin-left:-10px; border:2px solid #fff;">AL</div>
+        <div class="avatar-circle bg-success text-white" style="margin-left:-10px; border:2px solid #fff;">PT</div>
+    </div>
+</div>
+
+<div class="row g-4 h-100">
+    <!-- To Do -->
+    <div class="col-md-4">
+        <div class="bg-light p-3 rounded-3 h-100">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3">À Faire <span class="badge bg-secondary rounded-pill ms-2">2</span></h6>
+            
+            <div class="card card-custom p-3 mb-3 border-0 shadow-sm cursor-pointer hover-lift">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-danger-subtle text-danger">Urgent</span>
+                    <small class="text-muted">#TK-402</small>
+                </div>
+                <h6 class="fw-bold mb-1">Fuite d'eau - Toilettes RDC</h6>
+                <p class="small text-muted mb-3">Bâtiment C • Zone Nord</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted xsmall"><i class="bi bi-clock me-1"></i> 2h</div>
+                    <div class="avatar-circle xsmall" style="width:24px;height:24px;">JD</div>
+                </div>
+            </div>
+
+            <div class="card card-custom p-3 mb-3 border-0 shadow-sm cursor-pointer hover-lift">
+                 <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-warning-subtle text-warning">Moyen</span>
+                    <small class="text-muted">#TK-405</small>
+                </div>
+                <h6 class="fw-bold mb-1">Remplacement néon</h6>
+                <p class="small text-muted mb-3">Salle B201</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted xsmall"><i class="bi bi-clock me-1"></i> 1j</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="col-md-4">
+        <div class="bg-light p-3 rounded-3 h-100">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3">En Cours <span class="badge bg-primary rounded-pill ms-2">1</span></h6>
+            
+            <div class="card card-custom p-3 mb-3 border-0 shadow-sm cursor-pointer hover-lift border-start border-4 border-primary">
+                 <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-primary-subtle text-primary">En cours</span>
+                    <small class="text-muted">#TK-399</small>
+                </div>
+                <h6 class="fw-bold mb-1">Révision chauffage central</h6>
+                <p class="small text-muted mb-3">Sous-sol technique</p>
+                <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress-bar w-75" role="progressbar"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted xsmall"><i class="bi bi-clock me-1"></i> 4h</div>
+                    <div class="avatar-circle bg-info xsmall" style="width:24px;height:24px;">AL</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Done -->
+    <div class="col-md-4">
+        <div class="bg-light p-3 rounded-3 h-100">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3">Terminé <span class="badge bg-success rounded-pill ms-2">4</span></h6>
+            
+            <div class="card card-custom p-3 mb-3 border-0 shadow-sm opacity-75">
+                 <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-success-subtle text-success">Résolu</span>
+                    <small class="text-muted">#TK-350</small>
+                </div>
+                <h6 class="fw-bold mb-1 text-decoration-line-through">Installation Projecteur</h6>
+                <p class="small text-muted mb-3">Salle B202</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted xsmall"><i class="bi bi-check-circle-fill text-success me-1"></i> Hier</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
