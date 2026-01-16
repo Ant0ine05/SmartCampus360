@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: smartcampus_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: smartcampus360
+      MYSQL_DATABASE: smartcampus
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
