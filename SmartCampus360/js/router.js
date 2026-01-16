@@ -1,0 +1,279 @@
+const Router = {
+    init() {
+        window.addEventListener('hashchange', () => this.loadRoute(location.hash));
+        
+        // Initial load
+        const token = localStorage.getItem('sc360_auth');
+        if (!token) {
+            location.hash = '#login';
+        } else if (!location.hash || location.hash === '#login') {
+            location.hash = '#dashboard';
+        }
+        
+        this.loadRoute(location.hash);
+        this.setupLogout();
+    },
+
+    async loadRoute(hash) {
+        let routeName = hash.replace('#', '') || 'dashboard';
+        const token = localStorage.getItem('sc360_auth');
+
+        // Route Guard
+        if (!token && routeName !== 'login') {
+            location.hash = '#login';
+            return;
+        }
+
+        if (token && routeName === 'login') {
+            location.hash = '#dashboard';
+            return;
+        }
+
+        // Toggle UI Containers
+        const wrapper = document.getElementById('wrapper');
+        const loginContainer = document.getElementById('login-container');
+        
+        if (routeName === 'login') {
+            wrapper.classList.add('d-none');
+            loginContainer.classList.remove('d-none');
+            
+            // Render Login
+            if (Templates && Templates['login']) {
+                loginContainer.innerHTML = Templates['login'];
+            }
+        } else {
+            wrapper.classList.remove('d-none');
+            loginContainer.classList.add('d-none');
+            
+            // Update Active Link in Sidebar
+            document.querySelectorAll('.list-group-item').forEach(el => {
+                el.classList.remove('active', 'text-white');
+                if (el.getAttribute('href') === `#${routeName}`) {
+                     el.classList.add('active', 'text-white');
+                }
+            });
+
+            // Update Page Title
+            const titles = {
+                'dashboard': 'Tableau de bord',
+                'map': 'Carte Interactive',
+                'booking': 'Réservation de Salles',
+                'maintenance': 'Gestion Maintenance'
+            };
+            const titleEl = document.getElementById('page-title');
+            if (titleEl) titleEl.innerText = titles[routeName] || 'SmartCampus';
+
+            // Render Content
+            const contentDiv = document.getElementById('main-content');
+            if (Templates && Templates[routeName]) {
+                contentDiv.innerHTML = Templates[routeName];
+            } else {
+                contentDiv.innerHTML = `<div class="alert alert-danger">Module introuvable: ${routeName}</div>`;
+            }
+
+            // Init specific modules
+            if (routeName === 'dashboard') this.initDashboard();
+            if (routeName === 'map') this.initMap();
+            if (routeName === 'booking') this.initBooking();
+            if (routeName === 'maintenance') this.initMaintenance();
+            if (routeName === 'settings') this.initSettings();
+        }
+    },
+
+    login(e) {
+        e.preventDefault();
+        // Mock Login
+        localStorage.setItem('sc360_auth', 'true');
+        location.hash = '#dashboard';
+    },
+
+    logout() {
+        if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+            localStorage.removeItem('sc360_auth');
+            location.hash = '#login';
+        }
+    },
+
+    setupLogout() {
+        const logoutLinks = document.querySelectorAll('.text-danger');
+        logoutLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
+            });
+        });
+    },
+
+    initDashboard() {
+        // Init ApexCharts if library loaded
+        if (typeof ApexCharts !== 'undefined') {
+            // this.renderChart(); // Removed chart from dash
+        }
+        // Listen for live updates (Used for Favorites status in future)
+        window.addEventListener('campus-update', (e) => {
+             // ... logic to update live availability pills if needed ...
+        });
+    },
+
+    cancelBooking(id) {
+        if(confirm("Confirmer l'annulation de cette réservation ?")) {
+            const el = document.getElementById(id);
+            if(el) {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500);
+                SmartCampus.showToast('info', 'Réservation annulée.');
+            }
+        }
+    },
+
+    modifyBooking(id) {
+        SmartCampus.showToast('success', 'Redirection vers l\'éditeur...');
+        setTimeout(() => location.hash = '#booking', 500);
+    },
+
+    initMap() {
+        if (SmartCampus && typeof SmartCampus.initMap === 'function') {
+            setTimeout(() => SmartCampus.initMap(), 100); 
+        } else {
+            console.error("SmartCampus.initMap is not defined");
+        }
+    },
+
+    initBooking() {
+        // Range slider value update
+        const capInput = document.getElementById('filter-capacity');
+        const capDisplay = document.getElementById('cap-val');
+        if(capInput && capDisplay) {
+            capInput.addEventListener('input', (e) => capDisplay.innerText = e.target.value);
+            capInput.addEventListener('change', () => this.refreshBookingResults()); // Trigger search on release
+        }
+        
+        // Other filters trigger search
+        const triggers = ['search-input', 'filter-free-only', 'type-class', 'type-lab', 'type-hall'];
+        triggers.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener(el.type === 'text' ? 'input' : 'change', () => {
+                // Debounce simple text input
+                if(el.type === 'text') {
+                    clearTimeout(window.searchDebounce);
+                    window.searchDebounce = setTimeout(() => this.refreshBookingResults(), 300);
+                } else {
+                    this.refreshBookingResults();
+                }
+            });
+        });
+
+        // Initial Search
+        this.refreshBookingResults(); 
+    },
+
+    refreshBookingResults() {
+        const grid = document.getElementById('booking-results-grid');
+        const countBadge = document.getElementById('result-count');
+        
+        if(!grid) return;
+
+        // Get Filter Values
+        const query = document.getElementById('search-input')?.value.toLowerCase() || '';
+        const freeOnly = document.getElementById('filter-free-only')?.checked || false;
+        const minCap = parseInt(document.getElementById('filter-capacity')?.value || 0);
+        
+        const types = [];
+        if(document.getElementById('type-class')?.checked) types.push('Classroom');
+        if(document.getElementById('type-lab')?.checked) types.push('Lab');
+        if(document.getElementById('type-hall')?.checked) types.push('Hall');
+
+        // Filter Rooms (Mocking "SmartCampus.state.rooms" access or just using the global one)
+        const allRooms = SmartCampus.state.rooms; 
+        
+        const filtered = allRooms.filter(r => {
+            const matchesType = types.includes(r.type) || (r.type === 'Office' && types.includes('Classroom')); // Broaden search
+            const matchesQuery = r.name.toLowerCase().includes(query) || r.id.toLowerCase().includes(query);
+            const matchesCap = r.capacity >= minCap;
+            const isFree = freeOnly ? (r.occupancy / r.capacity < 0.5) : true; // arbitrarily < 50% is "free enough"
+
+            return matchesType && matchesQuery && matchesCap && isFree;
+        });
+
+        // Render
+        if(countBadge) countBadge.innerText = `${filtered.length} Espaces trouvés`;
+        
+        if(filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-search fs-1 text-muted opacity-25"></i>
+                    <p class="text-muted mt-3">Aucun espace ne correspond à vos critères.</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = filtered.map(r => {
+            const ratio = r.occupancy / (r.capacity || 1);
+            let statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Libre</span>';
+            if(ratio > 0.8) statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle me-1"></i>Saturé</span>';
+            else if(ratio > 0.5) statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-circle me-1"></i>Occupé</span>';
+
+            return `
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            ${statusBadge}
+                            <small class="text-muted fw-bold">${r.type}</small>
+                        </div>
+                        <h5 class="fw-bold mb-1">${r.name}</h5>
+                        <p class="text-muted small mb-3">Bâtiment Principal • Étage 1</p>
+                        
+                        <div class="d-flex gap-2 mb-4">
+                            <span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${r.capacity}</span>
+                            <span class="badge bg-light text-dark border"><i class="bi bi-wifi"></i></span>
+                            <span class="badge bg-light text-dark border"><i class="bi bi-projector"></i></span>
+                        </div>
+
+                        <button class="btn btn-outline-primary w-100 btn-sm" onclick="SmartCampus.showToast('success', 'Réservation confirmée pour ${r.name}')">Réserver</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    },
+
+    initMaintenance() {
+        // No specific initialization needed for Tabs (handled by Bootstrap)
+        // Additional logic can be added here if needed
+    },
+    
+    initSettings() {
+        // Tick Rate
+        const slider = document.getElementById('sim-tick');
+        const display = document.getElementById('sim-tick-val');
+        if(slider && display) {
+            slider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                display.innerText = `${val}ms`;
+                if(SmartCampus && SmartCampus.CONFIG) {
+                    SmartCampus.CONFIG.tickRate = parseInt(val);
+                }
+            });
+        }
+    },
+
+
+    renderChart() {
+        const options = {
+            series: [{ name: 'Consommation', data: [310, 420, 380, 500, 450, 480, 410] }],
+            chart: { type: 'area', height: 350, toolbar: { show: false } },
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 2 },
+            xaxis: { categories: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'] },
+            colors: ['#3b82f6'],
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.9, stops: [0, 90, 100] } }
+        };
+        const chart = new ApexCharts(document.querySelector("#chart-consumption"), options);
+        chart.render();
+    }
+};
+
+// Start Router when DOM ready
+document.addEventListener('DOMContentLoaded', () => Router.init());
