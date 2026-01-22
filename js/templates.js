@@ -346,7 +346,42 @@ const Templates = {
     <div class="col-md-8 col-lg-9">
         <div class="d-flex flex-column h-100 gap-4 overflow-auto pb-5 custom-scrollbar">
             
-            <!-- Recommendations section removed - using only real data from DB -->
+            <!-- Recommendations (Visible mainly when no specific search, but we show for nice aesthetics) -->
+            <div id="reco-section">
+                <h6 class="fw-bold text-muted small text-uppercase mb-3">Recommandé pour vous (IA)</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-primary-subtle h-100 hover-scale">
+                             <div class="card-body">
+                                <span class="badge bg-primary mb-2">Habitude</span>
+                                <h6 class="fw-bold text-primary-emphasis">Salle 103</h6>
+                                <small class="text-muted d-block mb-3">Votre salle préférée le Jeudi.</small>
+                                <button class="btn btn-sm btn-primary w-100">Réserver</button>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-success-subtle h-100 hover-scale">
+                             <div class="card-body">
+                                <span class="badge bg-success mb-2">Proximité</span>
+                                <h6 class="fw-bold text-success-emphasis">Labo Physique</h6>
+                                <small class="text-muted d-block mb-3">Proche de votre dernier cours.</small>
+                                <button class="btn btn-sm btn-success w-100">Réserver</button>
+                             </div>
+                        </div>
+                    </div>
+                     <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-info-subtle h-100 hover-scale">
+                             <div class="card-body">
+                                <span class="badge bg-info mb-2">Découverte</span>
+                                <h6 class="fw-bold text-info-emphasis">Box A-22</h6>
+                                <small class="text-muted d-block mb-3">Espace calme disponible.</small>
+                                <button class="btn btn-sm btn-info w-100">Réserver</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Results Grid -->
             <div>
@@ -390,10 +425,40 @@ const Templates = {
             
             <!-- Tab 1: Active Tickets -->
             <div class="tab-pane fade show active" id="active-tickets" role="tabpanel">
-                <!-- Les tickets sont chargés dynamiquement depuis l'API -->
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary mb-3" role="status"></div>
-                    <p class="text-muted">Chargement des tickets...</p>
+                <div class="row g-3">
+                    <!-- Ticket Card 1 -->
+                    <div class="col-md-6">
+                        <div class="card p-3 border-0 shadow-sm h-100 hover-lift cursor-pointer" onclick="SmartCampus.showToast('info', 'Détails ticket #TK-1024')">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">En cours</span>
+                                <small class="text-muted font-monospace">#TK-1024</small>
+                            </div>
+                            <h6 class="fw-bold mb-1">Panne Projecteur - Amphi A</h6>
+                            <p class="text-muted small mb-3">Le projecteur ne s'allume plus malgré le reboot.</p>
+                            <div class="d-flex align-items-center justify-content-between mt-auto">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle sm bg-secondary-subtle text-secondary me-2" style="width:24px;height:24px;font-size:10px;">JP</div>
+                                    <small class="text-muted">Jean-Pierre (Maintenance)</small>
+                                </div>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>Il y a 2h</small>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Ticket Card 2 -->
+                    <div class="col-md-6">
+                        <div class="card p-3 border-0 shadow-sm h-100 hover-lift cursor-pointer">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Nouveau</span>
+                                <small class="text-muted font-monospace">#TK-1025</small>
+                            </div>
+                            <h6 class="fw-bold mb-1">Fuite d'eau - Toilettes RDC</h6>
+                            <p class="text-muted small mb-3">Fuite importante signalée près de l'entrée nord.</p>
+                            <div class="d-flex align-items-center justify-content-between mt-auto">
+                                <span class="text-muted small fst-italic">Non assigné</span>
+                                <small class="text-muted"><i class="bi bi-clock me-1"></i>Il y a 10m</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -406,29 +471,34 @@ const Templates = {
                             
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small">Priorité</label>
-                                    <select class="form-select bg-light border-0" name="priority">
-                                        <option value="moyen">Normale</option>
-                                        <option value="urgent">Urgent</option>
-                                        <option value="bas">Basse</option>
+                                    <label class="form-label fw-bold small">Type d'incident</label>
+                                    <select class="form-select bg-light border-0">
+                                        <option value="tech">Matériel / Technique</option>
+                                        <option value="net">Réseau / Wifi</option>
+                                        <option value="log">Logistique / Mobilier</option>
+                                        <option value="clean">Nettoyage</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold small">Lieu / Salle</label>
-                                    <select class="form-select bg-light border-0" name="location">
-                                        <option value="">Chargement des salles...</option>
+                                    <select class="form-select bg-light border-0">
+                                        <option value="">Sélectionner une salle...</option>
+                                        <option value="C101">Amphi A</option>
+                                        <option value="A002">Bibliothèque</option>
+                                        <option value="K001">Cafétéria</option>
+                                        <option value="other">Autre / Couloir</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold small">Sujet</label>
-                                <input type="text" class="form-control bg-light border-0" name="title" placeholder="Ex: Écran bleu sur PC Professeur" required>
+                                <input type="text" class="form-control bg-light border-0" placeholder="Ex: Écran bleu sur PC Professeur">
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold small">Description détaillée</label>
-                                <textarea class="form-control bg-light border-0" rows="4" name="description" placeholder="Décrivez le problème..." required></textarea>
+                                <textarea class="form-control bg-light border-0" rows="4" placeholder="Décrivez le problème..."></textarea>
                             </div>
 
                             <div class="mb-4">
