@@ -15,30 +15,37 @@ CREATE TABLE users (
 
 -- 2. LES SALLES (Focus : Capacité et PC)
 CREATE TABLE rooms (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     capacity INT,
     nb_pc INT DEFAULT 0, 
-    room_type ENUM('cours', 'labo', 'reunion', 'box') DEFAULT 'cours'
+    room_type ENUM('cours', 'labo', 'reunion', 'box') DEFAULT 'cours',
+    temperature DECIMAL(4,1) DEFAULT 20.0,
+    occupancy INT DEFAULT 0
 );
 
 -- 3. RÉSERVATIONS
 CREATE TABLE bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    room_id INT,
+    room_id VARCHAR(50),
     user_id INT, 
+    user_name VARCHAR(100),
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
     status ENUM('confirme', 'annule') DEFAULT 'confirme',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 4. TICKETS DE SUPPORT
 CREATE TABLE tickets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    room_id INT,
+    id INT AVARCHAR(50),
+    title VARCHAR(255) NOT NULL,
+    subject VARCHAR(255),
+    description TEXT,
+    location VARCHAR(100),
+    priority ENUM('bas', 'moyen', 'urgent') DEFAULT 'moyen'
     subject VARCHAR(255) NOT NULL,
     description TEXT,
     status ENUM('nouveau', 'en_cours', 'resolu') DEFAULT 'nouveau',

@@ -55,8 +55,35 @@ const SmartCampus = {
         console.log("SmartCampus Mega Simulation Started");
         this.generateHistory();
         await this.fetchWeather();
+        
+        // Charger les salles depuis l'API ou utiliser les données locales
+        try {
+            const remoteRooms = await API.syncRooms(this.state.rooms);
+            if (remoteRooms && remoteRooms.length > 0) {
+                // Mapper les données de la BDD vers le format de simulation
+                this.state.rooms = remoteRooms.map(r => ({
+                    id: r.id,
+                    name: r.name,
+                    type: r.room_type === 'cours' ? 'Classroom' : 'Lab',
+                    capacity: r.capacity,
+                    temp: r.temperature || 20,
+                    targetTemp: 21,
+                    occupancy: r.occupancy || 0,
+                    lights: false,
+                    schedule: [],
+                    alert: null
+                }));
+                console.log('✅ Salles chargées depuis la base de données');
+            }
+        } catch (error) {
+            console.warn('⚠️ Mode simulation locale activé');
+        }
+        
         setInterval(() => this.tick(), this.CONFIG.tickRate);
         setInterval(() => this.randomEvent(), 30000); // Rare events
+        
+        // Synchroniser avec le backend toutes les 10 secondes
+        setInterval(() => this.syncWithBackend(), 10000);
     },
 
     async fetchWeather() {
@@ -165,26 +192,52 @@ const SmartCampus = {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Envoi...';
 
-        setTimeout(() => {
-            btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Envoyé !';
-            btn.classList.replace('btn-primary', 'btn-success');
-            
-            this.showToast('success', 'Ticket créé avec succès (ID: TK-' + Math.floor(Math.random() * 10000) + ')');
-            
-            // Reset form after delay
-            setTimeout(() => {
-                form.reset();
+        // Extraire les données du formulaire
+        const formData = new FormData(form);
+        const ticketData = {
+            title: formData.get('title') || formData.get('subject') || 'Ticket sans titre',
+            description: formData.get('description') || '',
+            location: formData.get('location') || '',
+            priority: formData.get('priority') || 'moyen',
+            user_id: 1 // ID utilisateur par défaut (à adapter)
+        };
+
+        // Envoyer au backend
+        API.createTicket(ticketData)
+            .then(result => {
+                btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Envoyé !';
+                btn.classList.replace('btn-primary', 'btn-success');
+                
+                this.showToast('success', `Ticket créé avec succès (ID: ${result.id})`);
+                
+                // Reset form after delay
+                setTimeout(() => {
+                    form.reset();
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.replace('btn-success', 'btn-primary');
+                    // Switch to active tab (optional, but nice)
+                    const activeTab = document.querySelector('#active-tab');
+                    if(activeTab) {
+                        const tab = new bootstrap.Tab(activeTab);
+                        tab.show();
+                    }
+                }, 1500);
+            })
+            .catch(error => {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-                btn.classList.replace('btn-success', 'btn-primary');
-                // Switch to active tab (optional, but nice)
-                const activeTab = document.querySelector('#active-tab');
-                if(activeTab) {
-                    const tab = new bootstrap.Tab(activeTab);
-                    tab.show();
-                }
-            }, 1500);
-        }, 1000);
+                this.showToast('danger', 'Erreur lors de la création du ticket');
+            });
+    },
+
+    // Synchroniser avec le backend
+    async syncWithBackend() {
+        try {
+            await API.pushRoomUpdates(this.state.rooms);
+        } catch (error) {
+            console.warn('Synchronisation backend échouée:', error);
+        }
     },
 };
 
