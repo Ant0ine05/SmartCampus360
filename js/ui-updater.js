@@ -13,7 +13,7 @@ const UIUpdater = {
 
         try {
             const rooms = await API.getRooms();
-            
+
             if (rooms.length === 0) {
                 grid.innerHTML = `
                     <div class="col-12 text-center py-5">
@@ -34,7 +34,7 @@ const UIUpdater = {
             grid.innerHTML = rooms.map(room => {
                 const ratio = room.occupancy / (room.capacity || 1);
                 let statusBadge, statusClass;
-                
+
                 if (ratio > 0.8) {
                     statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle me-1"></i>Saturé</span>';
                     statusClass = 'border-danger';
@@ -229,10 +229,10 @@ const UIUpdater = {
 
             // Mettre à jour les disponibilités rapides
             await this.updateQuickAvailability();
-            
+
             // Mettre à jour les tickets du dashboard
             await this.updateDashboardTickets();
-            
+
             // Mettre à jour les stats
             await this.updateDashboardStats();
         } catch (error) {
@@ -372,7 +372,7 @@ const UIUpdater = {
         try {
             await AppData.cancelBooking(bookingId);
             SmartCampus.showToast('success', 'Réservation annulée avec succès');
-            
+
             // Animer la suppression
             const el = document.getElementById(`resa-${bookingId}`);
             if (el) {
@@ -407,7 +407,7 @@ const UIUpdater = {
         const now = new Date();
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
+
         const dateStr = tomorrow.toISOString().split('T')[0];
         const timeStr = '09:00';
 
@@ -462,7 +462,7 @@ const UIUpdater = {
 
         // Ajouter le nouveau
         document.body.insertAdjacentHTML('beforeend', modal);
-        
+
         // Afficher
         const modalEl = new bootstrap.Modal(document.getElementById('bookingModal'));
         modalEl.show();
@@ -474,7 +474,7 @@ const UIUpdater = {
     async submitBooking() {
         const form = document.getElementById('booking-form');
         const formData = new FormData(form);
-        
+
         const date = formData.get('date');
         const startTime = formData.get('start_time');
         const endTime = formData.get('end_time');
@@ -485,13 +485,13 @@ const UIUpdater = {
 
         try {
             await AppData.createBooking(roomId, startDateTime, endDateTime);
-            
+
             // Fermer le modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
             modal.hide();
-            
+
             SmartCampus.showToast('success', 'Réservation créée avec succès !');
-            
+
             // Recharger les réservations
             setTimeout(() => this.updateBookingsList(), 500);
         } catch (error) {
@@ -524,26 +524,139 @@ const UIUpdater = {
 
     getTimeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
-        
+
         if (seconds < 60) return 'À l\'instant';
         if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)}min`;
         if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`;
         return `Il y a ${Math.floor(seconds / 86400)}j`;
+    },
+
+    /**
+     * Mettre à jour le profil utilisateur (Navbar & Greeting & Settings)
+     */
+    updateUserProfile() {
+        const userStr = localStorage.getItem('sc360_auth');
+        if (!userStr) return;
+
+        try {
+            const user = JSON.parse(userStr);
+            const userFullName = `${user.firstname} ${user.lastname}`;
+            const userInitials = `${user.firstname[0]}${user.lastname[0]}`.toUpperCase();
+            const isAdmin = user.role === 'admin';
+
+            // --- 1. Global Navbar Updates ---
+            const navName = document.getElementById('navbar-user-name');
+            const navAvatar = document.getElementById('navbar-user-avatar');
+
+            if (navName) navName.textContent = userFullName;
+            if (navAvatar) {
+                navAvatar.textContent = userInitials;
+                // Optional: Change color based on role
+                if (isAdmin) {
+                    navAvatar.classList.add('bg-primary');
+                    navAvatar.classList.remove('bg-secondary');
+                } else {
+                    navAvatar.classList.add('bg-secondary');
+                    navAvatar.classList.remove('bg-primary');
+                }
+            }
+
+            // --- 2. Dashboard Greetings ---
+            const dashGreeting = document.getElementById('dashboard-greeting');
+            if (dashGreeting) {
+                dashGreeting.textContent = `Bonjour, ${user.firstname} 👋`;
+            }
+
+            // --- 3. Settings Page Updates ---
+            const settingsName = document.getElementById('settings-name');
+            const settingsAvatar = document.getElementById('settings-avatar');
+            const settingsRoleBadge = document.getElementById('settings-role-badge');
+            const settingsEmail = document.getElementById('settings-email');
+            const settingsRoleInput = document.getElementById('settings-role-input');
+            const settingsRightsList = document.getElementById('settings-rights-list');
+
+            if (settingsName) {
+                settingsName.textContent = userFullName;
+                settingsAvatar.textContent = userInitials;
+                settingsEmail.value = user.email;
+
+                // Role handling
+                const roleLabel = isAdmin ? 'Administrateur' : 'Utilisateur Standard';
+                const roleBadgeText = isAdmin ? 'Personnel Administratif' : 'Étudiant / Staff';
+
+                settingsRoleInput.value = roleLabel;
+                settingsRoleBadge.textContent = roleBadgeText;
+
+                // Dynamic Rights List
+                const rights = isAdmin ? [
+                    'Administration Système',
+                    'Gestion Incidents (Full)',
+                    'Accès Salles (Master)',
+                    'Configuration IoT'
+                ] : [
+                    'Réservation de Salles',
+                    'Signalement Incidents',
+                    'Accès Salles (Standard)',
+                    'Consultation Planning'
+                ];
+
+                settingsRightsList.innerHTML = rights.map(right =>
+                    `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>${right}</li>`
+                ).join('');
+            }
+
+        } catch (e) {
+            console.error('Erreur parsing user profile', e);
+        }
+    },
+
+    /**
+     * Mettre à jour l'heure et la date (Dashboard)
+     */
+    updateDateTime() {
+        const timeEl = document.getElementById('dashboard-time');
+        const dateEl = document.getElementById('dashboard-date');
+
+        if (!timeEl && !dateEl) return;
+
+        const now = new Date();
+
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        if (dateEl) {
+            // Format: "Mardi 24 Oct"
+            const options = { weekday: 'long', day: 'numeric', month: 'short' };
+            // Capitalize first letter of day
+            let dateStr = now.toLocaleDateString('fr-FR', options);
+            dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+            dateEl.textContent = dateStr;
+        }
     }
 };
+
+// Global Timer for Clock
+setInterval(() => {
+    UIUpdater.updateDateTime();
+}, 1000);
 
 // Hook dans le router pour déclencher les mises à jour
 window.addEventListener('hashchange', async () => {
     const hash = location.hash.replace('#', '');
-    
+
     // Attendre que le DOM soit mis à jour
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
+    // Always update user profile (Navbar is always present)
+    UIUpdater.updateUserProfile();
+
     if (hash === 'booking') {
         UIUpdater.updateBookingPage();
     } else if (hash === 'maintenance') {
         UIUpdater.updateMaintenancePage();
     } else if (hash === 'dashboard') {
         UIUpdater.updateBookingsList();
+        UIUpdater.updateDateTime(); // Initial update
     }
 });
