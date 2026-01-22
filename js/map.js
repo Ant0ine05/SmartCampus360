@@ -1,31 +1,49 @@
 /**
- * LIVE MAP RENDERER - "AMONG US" STYLE
+ * LIVE MAP RENDERER
  * High fidelity SVG Map with Pan/Zoom and dynamic data overlays.
  */
 
-// === HARDCODED ZONES (The "Truth") ===
-// These coordinates must match the centers of the rooms in the SVG
-const MAP_ZONES = {
-    'GARDEN': { x: 250, y: 250 },
-    'ORANGE': { x: 400, y: 525 },
-    'GYM': { x: 800, y: 575 },
-    'BLUE': { x: 200, y: 725 },
-    'CAFE': { x: 610, y: 750 },
-    'LIBRARY': { x: 825, y: 350 },
-    'GREEN': { x: 1190, y: 525 },
-    'ART': { x: 1190, y: 725 },
-    'CHEMISTRY': { x: 1550, y: 670 },
-    'ADMIN': { x: 600, y: 300 } // fallback
+// Mapping des vraies salles de la BDD vers les zones de la carte
+const ROOM_TO_MAP_ZONE = {
+    'A101': { x: 250, y: 250, zone: 'GARDEN' },
+    'A102': { x: 400, y: 525, zone: 'ORANGE' },
+    'A103': { x: 800, y: 575, zone: 'GYM' },
+    'B201': { x: 200, y: 725, zone: 'BLUE' },
+    'B202': { x: 610, y: 750, zone: 'CAFE' },
+    'B203': { x: 825, y: 350, zone: 'LIBRARY' },
+    'C301': { x: 1190, y: 525, zone: 'GREEN' },
+    'C302': { x: 1190, y: 725, zone: 'ART' },
+    'C303': { x: 1550, y: 670, zone: 'CHEMISTRY' },
+    'D401': { x: 600, y: 300, zone: 'ADMIN' },
+    'D402': { x: 750, y: 450, zone: 'IP_ROOM' },
+    'E501': { x: 950, y: 550, zone: 'REST1' }
 };
+
+// Reverse mapping zone -> room ID
+const MAP_ZONE_TO_ROOM = {};
+Object.keys(ROOM_TO_MAP_ZONE).forEach(roomId => {
+    const zone = ROOM_TO_MAP_ZONE[roomId].zone;
+    MAP_ZONE_TO_ROOM[zone] = roomId;
+});
 
 let currentMapMode = 'occupancy'; // 'occupancy' | 'thermal' | 'tech'
 let transform = { x: 0, y: 0, scale: 1 };
 let isDragging = false;
 let startX, startY;
+let mapRoomsData = []; // Store real rooms data from API
 
-function renderMap() {
+async function renderMap() {
     const container = document.getElementById('campus-map');
     if (!container) return;
+    
+    // Load real rooms data from API
+    try {
+        mapRoomsData = await API.getRooms();
+        console.log(`🗺️ Carte chargée avec ${mapRoomsData.length} salles depuis la BDD`);
+    } catch (error) {
+        console.error('Erreur chargement salles pour la carte:', error);
+        mapRoomsData = [];
+    }
     
     // Add CSS for map controls if not present
     if(!document.getElementById('map-style')) {
@@ -260,23 +278,29 @@ function refreshMapColors() {
     alertsLayer.innerHTML = ''; // Clear alerts
 
     rooms.forEach(g => {
-        const id = g.getAttribute('data-id').trim(); // Ensure no whitespace
-        const roomData = SmartCampus.getRoom(id);
+        const zoneId = g.getAttribute('data-id').trim();
+        const roomId = MAP_ZONE_TO_ROOM[zoneId] || zoneId;
+        
+        // Get room data from API cache
+        const roomData = mapRoomsData.find(r => r.id === roomId);
         const rect = g.querySelector('.room-shape');
-        const sub = document.getElementById(`label-${id}`);
+        const sub = document.getElementById(`label-${zoneId}`);
 
         if (!roomData) return;
 
         let color = '#1e293b'; // Base Dark Blue
 
-        if(roomData.alert) {
+        // Check if room has maintenance tickets (alerts)
+        const hasAlert = roomData.has_maintenance || false;
+
+        if(hasAlert) {
              let cx = 0, cy = 0;
              
              // PRIORITY 1: Hardcoded Coordinates (100% RELIABLE)
-             if(MAP_ZONES[id]) {
-                 cx = MAP_ZONES[id].x;
-                 cy = MAP_ZONES[id].y;
-                 console.log(`[Map] Alert on ${id} -> Hardcoded coords: ${cx}, ${cy}`);
+             if(MAP_ZONES[zoneId]) {
+                 cx = MAP_ZONES[zoneId].x;
+                 cy = MAP_ZONES[zoneId].y;
+                 console.log(`[Map] Alert on ${zoneId} -> Hardcoded coords: ${cx}, ${cy}`);
              }
              // PRIORITY 2: BBox Calculation (Fallback)
              else {
@@ -293,7 +317,7 @@ function refreshMapColors() {
              if (cx === 0 || cy === 0) {
                  cx = 800; // Center map
                  cy = 500;
-                 console.warn(`[Map] Fallback to center for ${id}`);
+                 console.warn(`[Map] Fallback to center for ${zoneId}`);
              }
 
              if(cx !== 0 && cy !== 0) {
@@ -306,7 +330,6 @@ function refreshMapColors() {
                  iconPath.setAttribute("fill", "#ef4444");
                  
                  // Center and Scale
-                 // Translate to room center, offset by 12 (half of 24x24 icon), scale 2x
                  const offset = 12;
                  iconGroup.setAttribute("transform", `translate(${cx - offset}, ${cy - offset}) scale(2)`);
                  
@@ -328,13 +351,14 @@ function refreshMapColors() {
                 if(sub) sub.textContent = `${roomData.occupancy} / ${roomData.capacity}`;
 
             } else if (currentMapMode === 'thermal') {
-                if (roomData.temp < 19) color = '#1e3a8a'; // Cold (Blue-900)
-                else if (roomData.temp > 23) color = '#7f1d1d'; // Hot
+                const temp = roomData.temperature || 20;
+                if (temp < 19) color = '#1e3a8a'; // Cold (Blue-900)
+                else if (temp > 23) color = '#7f1d1d'; // Hot
                 else color = '#14532d'; // Good (Green-900)
                 
-                if(sub) sub.textContent = `${roomData.temp}°C`;
+                if(sub) sub.textContent = `${temp}°C`;
             } else {
-                 if(sub) sub.textContent = roomData.type;
+                 if(sub) sub.textContent = roomData.room_type || '';
             }
         }
         
@@ -346,17 +370,18 @@ function refreshMapColors() {
 
 window.selectedRoomId = null;
 
-function openRoomDetails(roomId) {
+function openRoomDetails(zoneId) {
+    // Convert zone to real room ID
+    const roomId = MAP_ZONE_TO_ROOM[zoneId] || zoneId;
     window.selectedRoomId = roomId;
     updateOffcanvasData(roomId);
 
     const offcanvasEl = document.getElementById('roomOffcanvas');
     if(offcanvasEl) {
-        // Check if already open to avoid resetting
         const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
         bsOffcanvas.show();
 
-        offcanvasEl.removeEventListener('hidden.bs.offcanvas', handleOffcanvasClose); // Clean prev listener
+        offcanvasEl.removeEventListener('hidden.bs.offcanvas', handleOffcanvasClose);
         offcanvasEl.addEventListener('hidden.bs.offcanvas', handleOffcanvasClose);
     }
 }
@@ -365,17 +390,41 @@ function handleOffcanvasClose() {
     window.selectedRoomId = null;
 }
 
-function updateOffcanvasData(roomId) {
-    const room = SmartCampus.getRoom(roomId);
-    if (!room) return;
+async function updateOffcanvasData(roomId) {
+    // Get real room data from API
+    const room = mapRoomsData.find(r => r.id === roomId);
+    if (!room) {
+        console.warn('Salle non trouvée:', roomId);
+        return;
+    }
 
     const setTxt = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
 
-    setTxt('detail-room-id', room.name || room.id);
-    setTxt('detail-room-type', room.type);
-    setTxt('detail-room-temp', room.temp + '°C');
-    setTxt('detail-room-occ', `${room.occupancy} / ${room.capacity}`);
-    setTxt('detail-room-schedule', room.currentClass || 'Libre');
+    const typeNames = {
+        'cours': 'Salle de Cours',
+        'labo': 'Laboratoire',
+        'reunion': 'Salle de Réunion',
+        'box': 'Box de Travail'
+    };
+
+    setTxt('detail-room-id', room.name);
+    setTxt('detail-room-type', typeNames[room.room_type] || room.room_type);
+    setTxt('detail-room-temp', room.temperature + '°C');
+    setTxt('detail-room-occ', room.occupancy);
+    
+    // Load bookings for this room
+    try {
+        const bookings = await API.getBookingsByRoom(roomId);
+        const nextBooking = bookings.find(b => new Date(b.start_time) > new Date());
+        if (nextBooking) {
+            const time = new Date(nextBooking.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            setTxt('detail-room-schedule', `Réservé à ${time}`);
+        } else {
+            setTxt('detail-room-schedule', 'Libre');
+        }
+    } catch (error) {
+        console.error('Erreur chargement réservations:', error);
+    }
 }
 
 // Export for global usage

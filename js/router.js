@@ -216,7 +216,7 @@ const Router = {
         }
     },
 
-    initBooking() {
+    async initBooking() {
         // Range slider value update
         const capInput = document.getElementById('filter-capacity');
         const capDisplay = document.getElementById('cap-val');
@@ -226,7 +226,7 @@ const Router = {
         }
         
         // Other filters trigger search
-        const triggers = ['search-input', 'filter-free-only', 'type-class', 'type-lab', 'type-hall'];
+        const triggers = ['search-input', 'filter-free-only', 'type-class', 'type-lab', 'type-hall', 'eq-pc'];
         triggers.forEach(id => {
             const el = document.getElementById(id);
             if(el) el.addEventListener(el.type === 'text' ? 'input' : 'change', () => {
@@ -240,11 +240,11 @@ const Router = {
             });
         });
 
-        // Initial Search
-        this.refreshBookingResults(); 
+        // Initial Search with real data from DB
+        await this.refreshBookingResults(); 
     },
 
-    refreshBookingResults() {
+    async refreshBookingResults() {
         const grid = document.getElementById('booking-results-grid');
         const countBadge = document.getElementById('result-count');
         
@@ -254,22 +254,35 @@ const Router = {
         const query = document.getElementById('search-input')?.value.toLowerCase() || '';
         const freeOnly = document.getElementById('filter-free-only')?.checked || false;
         const minCap = parseInt(document.getElementById('filter-capacity')?.value || 0);
+        const hasPc = document.getElementById('eq-pc')?.checked || false;
         
         const types = [];
-        if(document.getElementById('type-class')?.checked) types.push('Classroom');
-        if(document.getElementById('type-lab')?.checked) types.push('Lab');
-        if(document.getElementById('type-hall')?.checked) types.push('Hall');
+        if(document.getElementById('type-class')?.checked) types.push('cours');
+        if(document.getElementById('type-lab')?.checked) types.push('labo');
+        if(document.getElementById('type-hall')?.checked) types.push('reunion');
 
-        // Filter Rooms (Mocking "SmartCampus.state.rooms" access or just using the global one)
-        const allRooms = SmartCampus.state.rooms; 
+        // Get rooms from API
+        const allRooms = await API.getRooms();
         
         const filtered = allRooms.filter(r => {
-            const matchesType = types.includes(r.type) || (r.type === 'Office' && types.includes('Classroom')); // Broaden search
-            const matchesQuery = r.name.toLowerCase().includes(query) || r.id.toLowerCase().includes(query);
+            // Filter by type
+            const matchesType = types.length === 0 || types.includes(r.room_type);
+            
+            // Filter by search query
+            const matchesQuery = !query || 
+                r.name.toLowerCase().includes(query) || 
+                r.id.toLowerCase().includes(query);
+            
+            // Filter by capacity
             const matchesCap = r.capacity >= minCap;
-            const isFree = freeOnly ? (r.occupancy / r.capacity < 0.5) : true; // arbitrarily < 50% is "free enough"
+            
+            // Filter by availability
+            const isFree = !freeOnly || (r.occupancy / r.capacity < 0.5);
+            
+            // Filter by PC equipment
+            const matchesPc = !hasPc || r.nb_pc > 0;
 
-            return matchesType && matchesQuery && matchesCap && isFree;
+            return matchesType && matchesQuery && matchesCap && isFree && matchesPc;
         });
 
         // Render
@@ -291,24 +304,32 @@ const Router = {
             if(ratio > 0.8) statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle me-1"></i>Saturé</span>';
             else if(ratio > 0.5) statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-exclamation-circle me-1"></i>Occupé</span>';
 
+            const typeNames = {
+                'cours': 'Salle de cours',
+                'labo': 'Laboratoire',
+                'reunion': 'Réunion',
+                'box': 'Box'
+            };
+
             return `
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm hover-lift">
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3">
                             ${statusBadge}
-                            <small class="text-muted fw-bold">${r.type}</small>
+                            <small class="text-muted fw-bold">${typeNames[r.room_type] || r.room_type}</small>
                         </div>
                         <h5 class="fw-bold mb-1">${r.name}</h5>
-                        <p class="text-muted small mb-3">Bâtiment Principal • Étage 1</p>
+                        <p class="text-muted small mb-1">${r.id}</p>
+                        <p class="text-muted small mb-3">${r.temperature}°C • ${r.occupancy}/${r.capacity} pers.</p>
                         
                         <div class="d-flex gap-2 mb-4">
                             <span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${r.capacity}</span>
+                            ${r.nb_pc > 0 ? `<span class="badge bg-light text-dark border"><i class="bi bi-pc-display me-1"></i>${r.nb_pc} PC</span>` : ''}
                             <span class="badge bg-light text-dark border"><i class="bi bi-wifi"></i></span>
-                            <span class="badge bg-light text-dark border"><i class="bi bi-projector"></i></span>
                         </div>
 
-                        <button class="btn btn-outline-primary w-100 btn-sm" onclick="SmartCampus.showToast('success', 'Réservation confirmée pour ${r.name}')">Réserver</button>
+                        <button class="btn btn-outline-primary w-100 btn-sm" onclick="UIUpdater.showBookingModal('${r.id}', '${r.name}')">Réserver</button>
                     </div>
                 </div>
             </div>
@@ -316,9 +337,22 @@ const Router = {
         }).join('');
     },
 
-    initMaintenance() {
-        // No specific initialization needed for Tabs (handled by Bootstrap)
-        // Additional logic can be added here if needed
+    async initMaintenance() {
+        // Load rooms for the ticket form dropdown
+        try {
+            const rooms = await API.getRooms();
+            const roomSelect = document.querySelector('#new-ticket select[name="location"]');
+            
+            if (roomSelect && rooms.length > 0) {
+                // Keep the placeholder and "Autre" option, add real rooms
+                const options = '<option value="">Sélectionner une salle...</option>' +
+                    rooms.map(r => `<option value="${r.id}">${r.name} (${r.id})</option>`).join('') +
+                    '<option value="other">Autre / Couloir</option>';
+                roomSelect.innerHTML = options;
+            }
+        } catch (error) {
+            console.error('Erreur chargement des salles:', error);
+        }
     },
     
     initSettings() {
