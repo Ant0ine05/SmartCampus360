@@ -75,27 +75,27 @@ CREATE TABLE measurements (
 
 -- Insertion des utilisateurs
 INSERT INTO users (lastname, firstname, email, password, role) VALUES
-('Dubois', 'Marie', 'marie.dubois@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin'),
-('Martin', 'Thomas', 'thomas.martin@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur'),
-('Bernard', 'Sophie', 'sophie.bernard@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur'),
-('Petit', 'Lucas', 'lucas.petit@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur'),
-('Robert', 'Emma', 'emma.robert@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur'),
-('Richard', 'Hugo', 'hugo.richard@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur'),
-('Durand', 'Léa', 'lea.durand@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin'),
-('Moreau', 'Nathan', 'nathan.moreau@campus.fr', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'utilisateur');
+('Dubois', 'Marie', 'marie.dubois@campus.fr', 'password', 'admin'),
+('Martin', 'Thomas', 'thomas.martin@campus.fr', 'password', 'utilisateur'),
+('Bernard', 'Sophie', 'sophie.bernard@campus.fr', 'password', 'utilisateur'),
+('Petit', 'Lucas', 'lucas.petit@campus.fr', 'password', 'utilisateur'),
+('Robert', 'Emma', 'emma.robert@campus.fr', 'password', 'utilisateur'),
+('Richard', 'Hugo', 'hugo.richard@campus.fr', 'password', 'utilisateur'),
+('Durand', 'Léa', 'lea.durand@campus.fr', 'password', 'admin'),
+('Moreau', 'Nathan', 'nathan.moreau@campus.fr', 'password', 'utilisateur');
 
 -- Insertion des salles
 INSERT INTO rooms (id, name, capacity, nb_pc, room_type, temperature, occupancy) VALUES
-('A101', 'Amphithéâtre A', 200, 0, 'cours', 21.5, 45),
+('A101', 'Amphitheatre A', 200, 0, 'cours', 21.5, 45),
 ('A102', 'Salle TP Info 1', 30, 30, 'labo', 22.0, 28),
 ('A103', 'Salle TP Info 2', 30, 30, 'labo', 21.8, 15),
 ('B201', 'Salle de cours B201', 50, 1, 'cours', 20.5, 0),
 ('B202', 'Salle de cours B202', 50, 1, 'cours', 21.0, 35),
-('B203', 'Salle réunion 1', 15, 0, 'reunion', 22.5, 8),
+('B203', 'Salle reunion 1', 15, 0, 'reunion', 22.5, 8),
 ('C301', 'Labo Recherche', 20, 15, 'labo', 21.2, 12),
 ('C302', 'Box Travail 1', 6, 2, 'box', 20.8, 4),
 ('C303', 'Box Travail 2', 6, 2, 'box', 21.3, 0),
-('D401', 'Amphithéâtre D', 150, 0, 'cours', 22.0, 120),
+('D401', 'Amphitheatre D', 150, 0, 'cours', 22.0, 120),
 ('D402', 'Salle Projet', 25, 10, 'labo', 21.5, 18),
 ('E501', 'Salle Visio', 12, 1, 'reunion', 21.0, 5);
 
@@ -114,11 +114,11 @@ INSERT INTO bookings (room_id, user_id, user_name, start_time, end_time, status)
 
 -- Insertion des tickets de support
 INSERT INTO tickets (user_id, room_id, title, subject, description, location, priority, status) VALUES
-(2, 'A102', 'Projecteur défectueux', 'Équipement', 'Le projecteur ne s\'allume plus dans la salle TP Info 1', 'Bâtiment A, Salle A102', 'urgent', 'en_cours'),
+(2, 'A102', 'Projecteur defectueux', 'Équipement', 'Le projecteur ne s\'allume plus dans la salle TP Info 1', 'Bâtiment A, Salle A102', 'urgent', 'en_cours'),
 (3, 'B201', 'Climatisation trop forte', 'Température', 'La climatisation est réglée trop bas, il fait froid', 'Bâtiment B, Salle B201', 'moyen', 'nouveau'),
 (4, 'A101', 'Microphone ne fonctionne pas', 'Équipement', 'Le microphone sans fil n\'émet aucun son', 'Amphithéâtre A', 'urgent', 'nouveau'),
 (5, NULL, 'WiFi instable', 'Réseau', 'Connexion WiFi qui se déconnecte régulièrement', 'Bâtiment C', 'moyen', 'en_cours'),
-(6, 'C301', 'PC bloqué', 'Informatique', 'Un des PC du labo ne démarre plus', 'Labo Recherche C301', 'moyen', 'resolu'),
+(6, 'C301', 'PC bloque', 'Informatique', 'Un des PC du labo ne démarre plus', 'Labo Recherche C301', 'moyen', 'resolu'),
 (8, 'D402', 'Tableau blanc sale', 'Entretien', 'Le tableau blanc n\'a pas été nettoyé', 'Salle Projet D402', 'bas', 'nouveau'),
 (2, 'E501', 'Caméra visio défaillante', 'Équipement', 'La caméra de visioconférence ne fonctionne pas', 'Salle Visio E501', 'urgent', 'en_cours'),
 (3, 'C303', 'Chaise cassée', 'Mobilier', 'Une chaise a un pied cassé', 'Box Travail 2', 'moyen', 'resolu');

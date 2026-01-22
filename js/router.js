@@ -81,11 +81,46 @@ const Router = {
         }
     },
 
-    login(e) {
+    async login(e) {
         e.preventDefault();
-        // Mock Login
-        localStorage.setItem('sc360_auth', 'true');
-        location.hash = '#dashboard';
+        const form = e.target;
+        const email = form.querySelector('input[type="email"]').value.trim();
+        const password = form.querySelector('input[type="password"]').value;
+
+        // Validation des champs
+        if (!email || !password) {
+            alert('Veuillez remplir tous les champs');
+            return;
+        }
+
+        if (password.length < 3) {
+            alert('Mot de passe trop court');
+            return;
+        }
+
+        try {
+            // Récupérer tous les utilisateurs pour vérifier les credentials
+            const users = await API.getUsers();
+            const user = users.find(u => u.email === email);
+            
+            // Vérifier que l'utilisateur existe ET que le mot de passe est correct
+            // Pour ce projet, on accepte "password123" pour tous les comptes
+            if (user && password === 'password123') {
+                localStorage.setItem('sc360_auth', JSON.stringify({
+                    id: user.id,
+                    email: user.email,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    role: user.role
+                }));
+                location.hash = '#dashboard';
+            } else {
+                alert('Email ou mot de passe incorrect');
+            }
+        } catch (error) {
+            console.error('Erreur de connexion:', error);
+            alert('Erreur de connexion. Vérifiez que l\'API est démarrée.');
+        }
     },
 
     logout() {

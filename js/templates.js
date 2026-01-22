@@ -14,14 +14,14 @@ const Templates = {
             <label class="form-label text-secondary small text-uppercase fw-bold ls-1">Email</label>
             <div class="input-group">
                 <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-envelope"></i></span>
-                <input type="email" class="form-control bg-dark border-secondary text-white" placeholder="admin@smartcampus.fr" value="admin@smartcampus.fr">
+                <input type="email" class="form-control bg-dark border-secondary text-white" placeholder="email@campus.fr" required>
             </div>
         </div>
         <div class="mb-5">
             <label class="form-label text-secondary small text-uppercase fw-bold ls-1">Mot de passe</label>
             <div class="input-group">
                 <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock"></i></span>
-                <input type="password" class="form-control bg-dark border-secondary text-white" placeholder="••••••••" value="password">
+                <input type="password" class="form-control bg-dark border-secondary text-white" placeholder="••••••••" required>
             </div>
         </div>
         <div class="d-grid">
@@ -31,6 +31,8 @@ const Templates = {
     
     <div class="text-center mt-4">
         <small class="text-muted">Accès réservé au personnel autorisé</small>
+        <br>
+        <small class="text-muted opacity-50 mt-2 d-block">Test: marie.dubois@campus.fr / password123</small>
     </div>
 </div>
     `,
@@ -58,61 +60,21 @@ const Templates = {
         <div class="card-custom p-4 h-100 border-0 shadow-sm bg-white">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-0"><i class="bi bi-calendar-check me-2"></i>Mes Réservations</h6>
-                <span class="badge bg-light text-dark border">3 à venir</span>
+                <span class="badge bg-light text-dark border">0 à venir</span>
             </div>
             
             <div class="d-flex flex-column gap-3">
-                <!-- Booking Card 1 -->
-                <div class="card border-0 shadow-sm bg-light hover-scale" id="resa-1">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="date-box bg-white rounded p-2 text-center me-3 shadow-sm" style="min-width: 60px;">
-                                <span class="d-block fw-bold text-primary small">OCT</span>
-                                <span class="d-block fw-bold fs-5">24</span>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Réunion Équipe Pédago.</h6>
-                                <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>Salle 103 • 14:00 - 15:30</div>
-                            </div>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                <li><a class="dropdown-item" href="#" onclick="Router.modifyBooking('resa-1')"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="Router.cancelBooking('resa-1')"><i class="bi bi-trash me-2"></i>Annuler</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Booking Card 2 -->
-                <div class="card border-0 shadow-sm bg-light hover-scale" id="resa-2">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                         <div class="d-flex align-items-center">
-                            <div class="date-box bg-white rounded p-2 text-center me-3 shadow-sm" style="min-width: 60px;">
-                                <span class="d-block fw-bold text-primary small">OCT</span>
-                                <span class="d-block fw-bold fs-5">26</span>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">Cours Magistral - Info</h6>
-                                <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>Amphi A • 09:00 - 12:00</div>
-                            </div>
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm rounded-circle" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                <li><a class="dropdown-item" href="#" onclick="Router.modifyBooking('resa-2')"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="Router.cancelBooking('resa-2')"><i class="bi bi-trash me-2"></i>Annuler</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                <!-- Les réservations seront chargées dynamiquement par UIUpdater -->
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                    <p class="small">Chargement des réservations...</p>
                 </div>
             </div>
              <button class="btn btn-link text-decoration-none text-center mt-3 w-100 text-muted small">Voir calendrier complet</button>
         </div>
     </div>
 
-    <!-- COLUMN 2: Requests & Tickets -->
+    <!-- COLUMN 2: Tickets & Requests -->
     <div class="col-lg-6">
         <div class="d-flex flex-column gap-4 h-100">
             <!-- Active Ticket -->
@@ -123,51 +85,36 @@ const Templates = {
                 </div>
                 
                 <div class="position-relative" style="z-index: 1;">
-                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-ticket-perforated me-2"></i>Ticket en cours</h6>
+                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-ticket-perforated me-2"></i>Tickets Actifs</h6>
                     
-                    <div class="card bg-warning-subtle border-0 mb-2">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="badge bg-warning text-dark">En Traitement</span>
-                                <a href="#maintenance" class="text-decoration-none small fw-bold text-warning-emphasis stretched-link">Voir détails</a>
-                            </div>
-                            <h5 class="fw-bold text-dark mb-1">Panne Projecteur - Amphi A</h5>
-                            <small class="text-muted">Créé il y a 2h • Assigné à J. Pierre</small>
-                            <div class="progress mt-3 bg-white" style="height: 6px;">
-                                <div class="progress-bar bg-warning" style="width: 60%"></div>
-                            </div>
-                             <small class="text-muted d-block mt-1 text-end">60% complété</small>
+                    <div id="dashboard-tickets">
+                        <!-- Les tickets seront chargés dynamiquement -->
+                        <div class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                            <p class="small">Chargement des tickets...</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Requests -->
+            <!-- Quick Stats -->
             <div class="card-custom p-4 border-0 shadow-sm bg-white flex-fill">
-                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-hourglass-split me-2"></i>Demandes en attente</h6>
+                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-graph-up me-2"></i>Statistiques</h6>
                 
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-bottom-0 action-item">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle sm bg-purple-subtle text-purple me-3"><i class="bi bi-laptop"></i></div>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark small">Prêt Macbook Pro</h6>
-                                <small class="text-muted">Demande #EQ-442</small>
-                            </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <h4 class="fw-bold mb-0" id="stat-rooms">0</h4>
+                            <small class="text-muted">Salles</small>
                         </div>
-                        <span class="badge bg-secondary-subtle text-secondary rounded-pill">Validation Admin</span>
-                    </li>
-                     <li class="list-group-item px-0 d-flex justify-content-between align-items-center border-bottom-0 action-item mt-2">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle sm bg-success-subtle text-success me-3"><i class="bi bi-building"></i></div>
-                            <div>
-                                <h6 class="fw-bold mb-0 text-dark small">Accès Labo Soirée</h6>
-                                <small class="text-muted">Pour le 28 Oct</small>
-                            </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded text-center">
+                            <h4 class="fw-bold mb-0" id="stat-bookings">0</h4>
+                            <small class="text-muted">Réservations</small>
                         </div>
-                        <span class="badge bg-secondary-subtle text-secondary rounded-pill">En attente</span>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -175,43 +122,12 @@ const Templates = {
     <!-- ROW 2: Quick Availability -->
     <div class="col-12">
          <div class="card-custom p-4 border-0 shadow-sm bg-white">
-            <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-lightning-charge me-2"></i>Disponibilités Favorites (Live)</h6>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <div class="p-3 border rounded h-100 d-flex justify-content-between align-items-center bg-success-subtle border-success-subtle">
-                        <div>
-                            <h6 class="fw-bold mb-1 text-success-emphasis">Salle 103</h6>
-                            <small class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Libre</small>
-                        </div>
-                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" title="Réserver"><i class="bi bi-plus text-success"></i></button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="p-3 border rounded h-100 d-flex justify-content-between align-items-center bg-light">
-                         <div>
-                            <h6 class="fw-bold mb-1">Labo Physique</h6>
-                            <small class="text-muted"><i class="bi bi-clock me-1"></i>Occupé (15 min)</small>
-                        </div>
-                         <button class="btn btn-light btn-sm rounded-circle shadow-sm disabled"><i class="bi bi-clock"></i></button>
-                    </div>
-                </div>
-                 <div class="col-md-3">
-                    <div class="p-3 border rounded h-100 d-flex justify-content-between align-items-center bg-light">
-                         <div>
-                            <h6 class="fw-bold mb-1">Box A-22</h6>
-                            <small class="text-muted"><i class="bi bi-clock me-1"></i>Occupé (45 min)</small>
-                        </div>
-                        <button class="btn btn-light btn-sm rounded-circle shadow-sm disabled"><i class="bi bi-clock"></i></button>
-                    </div>
-                </div>
-                 <div class="col-md-3">
-                     <div class="p-3 border rounded h-100 d-flex justify-content-between align-items-center bg-success-subtle border-success-subtle">
-                        <div>
-                            <h6 class="fw-bold mb-1 text-success-emphasis">Cafétéria</h6>
-                            <small class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Peu d'affluence</small>
-                        </div>
-                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" onclick="location.hash='#map'"><i class="bi bi-map text-success"></i></button>
-                    </div>
+            <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-lightning-charge me-2"></i>Disponibilités (Live)</h6>
+            <div class="row g-3" id="quick-availability">
+                <!-- Les salles seront chargées dynamiquement -->
+                <div class="col-12 text-center py-3 text-muted">
+                    <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                    <p class="small">Chargement des disponibilités...</p>
                 </div>
             </div>
          </div>
