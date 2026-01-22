@@ -1,5 +1,7 @@
 ```text
-> SmartCampus <
+
+SmartCampus360
+Public
 ```
 
 > **La plateforme de supervision intelligente pour les campus de demain.**
