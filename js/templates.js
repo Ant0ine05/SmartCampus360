@@ -295,7 +295,7 @@ const Templates = {
             <!-- Availability -->
             <div class="mb-4">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="filter-free-only" checked>
+                    <input class="form-check-input" type="checkbox" id="filter-free-only">
                     <label class="form-check-label small fw-bold" for="filter-free-only">Disponibles uniquement</label>
                 </div>
             </div>
@@ -304,11 +304,11 @@ const Templates = {
             <div class="mb-4">
                 <label class="form-label small fw-bold">Type d'espace</label>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Classroom" id="type-class" checked>
+                    <input class="form-check-input" type="checkbox" value="Classroom" id="type-class">
                     <label class="form-check-label small" for="type-class">Salles de Cours</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="Lab" id="type-lab" checked>
+                    <input class="form-check-input" type="checkbox" value="Lab" id="type-lab">
                     <label class="form-check-label small" for="type-lab">Laboratoires</label>
                 </div>
                 <div class="form-check">
@@ -334,8 +334,8 @@ const Templates = {
 
             <!-- Capacity -->
             <div class="mb-3">
-                <label class="form-label small fw-bold">Capacité Min: <span id="cap-val" class="text-primary">10</span></label>
-                <input type="range" class="form-range" min="1" max="200" step="5" value="10" id="filter-capacity">
+                <label class="form-label small fw-bold">Capacité Min: <span id="cap-val" class="text-primary">1</span></label>
+                <input type="range" class="form-range" min="1" max="200" step="5" value="1" id="filter-capacity">
             </div>
 
              <button class="btn btn-primary w-100 shadow-sm mt-3" onclick="Router.refreshBookingResults()"><i class="bi bi-arrow-repeat me-2"></i>Actualiser</button>
