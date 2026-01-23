@@ -133,13 +133,34 @@ const SmartCampus = {
 
     tick() {
         const hour = new Date().getHours();
+        const minute = new Date().getMinutes();
         let totalPower = 300;
+
+        // Campus de 5000 étudiants - Simulation réaliste pour le total global
+        const TOTAL_CAMPUS_CAPACITY = 5000;
+        
+        // Taux d'occupation selon l'heure (0-1)
+        let occupancyRate = 0.6; // Base 60%
+        if (hour >= 8 && hour < 9) occupancyRate = 0.4 + (minute / 60) * 0.3;
+        else if (hour >= 9 && hour < 12) occupancyRate = 0.7 + Math.random() * 0.15;
+        else if (hour >= 12 && hour < 14) occupancyRate = 0.4 + Math.random() * 0.2;
+        else if (hour >= 14 && hour < 17) occupancyRate = 0.65 + Math.random() * 0.2;
+        else if (hour >= 17 && hour < 19) occupancyRate = 0.3 - (minute / 60) * 0.2;
+        else if (hour >= 19 || hour < 8) occupancyRate = 0.05 + Math.random() * 0.1;
+        
+        const currentOccupancy = Math.round(TOTAL_CAMPUS_CAPACITY * occupancyRate);
+        const variation = Math.round((Math.random() - 0.5) * 100);
+        const totalOccupancy = Math.max(50, Math.min(TOTAL_CAMPUS_CAPACITY, currentOccupancy + variation));
+        
+        // Stocker dans l'état global pour accès depuis n'importe où
+        this.state.totalOccupancy = totalOccupancy;
+        this.state.totalCapacity = TOTAL_CAMPUS_CAPACITY;
 
         this.state.rooms.forEach(room => {
             // Vérifier que la salle est valide
             if (!room || !room.capacity) return;
             
-            // Occupancy Logic
+            // Occupancy Logic - Les salles de la map sont une partie du campus
             const targetRatio = this.getOccupancyTarget(room, hour);
             const targetOcc = room.capacity * targetRatio;
             const fluctuation = (Math.random() - 0.5) * 5;
@@ -318,6 +339,23 @@ const SmartCampus = {
                     trendEl.innerHTML = '<i class="bi bi-dash"></i> Stable';
                     trendEl.style.color = '#ffffff';
                 }
+            }
+        }
+        
+        // Mise à jour du nombre total de personnes détectées sur le campus
+        const totalPeopleEl = document.getElementById('dashboard-total-people');
+        if (totalPeopleEl && this.state.totalOccupancy !== undefined) {
+            const oldPeople = parseInt(totalPeopleEl.innerText) || 0;
+            const newPeople = this.state.totalOccupancy;
+            
+            if (oldPeople !== newPeople) {
+                totalPeopleEl.style.transition = 'all 0.5s ease';
+                totalPeopleEl.style.transform = 'scale(1.05)';
+                
+                setTimeout(() => {
+                    totalPeopleEl.innerText = newPeople;
+                    totalPeopleEl.style.transform = 'scale(1)';
+                }, 250);
             }
         }
         
