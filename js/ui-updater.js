@@ -990,6 +990,7 @@ const UIUpdater = {
         await this.updateAdminBookings();
         await this.updateAdminTickets();
         await this.updateAdminStats();
+        await this.updateAdminTempGraph();
         SmartCampus.showToast('success', 'Données actualisées');
     },
 
@@ -1531,6 +1532,215 @@ const UIUpdater = {
                 </div>
             `;
         }
+    },
+
+    /**
+     * Afficher le graphique de température moyenne campus
+     */
+    async updateAdminTempGraph() {
+        if (typeof ApexCharts === 'undefined') {
+            console.warn('ApexCharts non chargé');
+            return;
+        }
+
+        const chartContainer = document.querySelector("#admin-chart-temperature");
+        if (!chartContainer) return;
+
+        try {
+            // Récupérer la température moyenne depuis les salles
+            let avgTemp = 21; // Température par défaut
+            
+            if (window.SmartCampus && window.SmartCampus.state.rooms) {
+                const rooms = window.SmartCampus.state.rooms;
+                const validTemps = rooms.filter(r => r.temp && !isNaN(r.temp)).map(r => r.temp);
+                if (validTemps.length > 0) {
+                    avgTemp = validTemps.reduce((sum, t) => sum + t, 0) / validTemps.length;
+                }
+            }
+
+            // Si le graphique existe déjà, mettre à jour les données
+            if (chartContainer._apexChart && chartContainer._chartData) {
+                const data = chartContainer._chartData;
+                
+                // Ajouter la nouvelle valeur et retirer la plus ancienne (tableau circulaire)
+                data.temperature.push(avgTemp);
+                data.target.push(21); // Température cible
+                
+                if (data.temperature.length > 7) {
+                    data.temperature.shift();
+                    data.target.shift();
+                }
+                
+                // Mettre à jour les catégories (minutes)
+                const now = new Date();
+                const categories = [];
+                for (let i = 6; i >= 0; i--) {
+                    const time = new Date(now.getTime() - i * 60000);
+                    categories.push(time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0'));
+                }
+                data.categories = categories;
+                
+                // Mettre à jour le graphique
+                chartContainer._apexChart.updateOptions({
+                    xaxis: {
+                        categories: categories
+                    }
+                });
+                
+                chartContainer._apexChart.updateSeries([{
+                    name: 'Température Moyenne',
+                    data: data.temperature
+                }, {
+                    name: 'Température Cible',
+                    data: data.target
+                }]);
+                
+                return;
+            }
+
+            // Initialiser les données (première fois) - 7 dernières minutes
+            const now = new Date();
+            const categories = [];
+            const tempData = [];
+            const targetData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const time = new Date(now.getTime() - i * 60000);
+                categories.push(time.getHours().toString().padStart(2, '0') + ':' + time.getMinutes().toString().padStart(2, '0'));
+                
+                // Générer des valeurs légèrement variées autour de la température actuelle
+                const pastVariation = (Math.random() - 0.5) * 2; // ±1°C
+                tempData.push(parseFloat((avgTemp + pastVariation).toFixed(1)));
+                targetData.push(21);
+            }
+            
+            // Stocker les données pour les futures mises à jour
+            chartContainer._chartData = {
+                temperature: [...tempData],
+                target: [...targetData],
+                categories: [...categories]
+            };
+
+            // Détruire le graphique existant s'il existe
+            if (chartContainer._apexChart) {
+                chartContainer._apexChart.destroy();
+            }
+
+            const options = {
+                series: [{
+                    name: 'Température Moyenne',
+                    data: tempData
+                }, {
+                    name: 'Température Cible',
+                    data: targetData
+                }],
+                chart: {
+                    type: 'area',
+                    height: 400,
+                    fontFamily: 'Outfit, sans-serif',
+                    toolbar: { show: false },
+                    animations: { 
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800,
+                        dynamicAnimation: {
+                            enabled: true,
+                            speed: 350
+                        }
+                    }
+                },
+                colors: ['#ef4444', '#94a3b8'],
+                dataLabels: { enabled: false },
+                stroke: { 
+                    curve: 'smooth', 
+                    width: 3 
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.5,
+                        opacityTo: 0.1,
+                        stops: [0, 90, 100]
+                    }
+                },
+                xaxis: {
+                    categories: categories,
+                    labels: {
+                        style: {
+                            colors: '#64748b',
+                            fontSize: '12px',
+                            fontWeight: 600
+                        }
+                    },
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    min: 16,
+                    max: 28,
+                    labels: {
+                        style: {
+                            colors: '#64748b',
+                            fontSize: '12px'
+                        },
+                        formatter: (value) => {
+                            return value.toFixed(1) + '°C'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#f1f5f9',
+                    strokeDashArray: 4,
+                    xaxis: {
+                        lines: {
+                            show: false
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    labels: {
+                        colors: '#64748b'
+                    },
+                    markers: {
+                        width: 10,
+                        height: 10,
+                        radius: 2
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: (value) => {
+                            return value.toFixed(1) + '°C'
+                        }
+                    },
+                    theme: 'light',
+                    style: {
+                        fontSize: '12px',
+                        fontFamily: 'Outfit, sans-serif'
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(chartContainer, options);
+            chartContainer._apexChart = chart;
+            await chart.render();
+
+        } catch (error) {
+            console.error('Erreur génération graphique température:', error);
+            chartContainer.innerHTML = `
+                <div class="text-center py-5 text-danger">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <p class="mt-2">Erreur lors de la génération du graphique</p>
+                </div>
+            `;
+        }
     }
 };
 
@@ -1544,8 +1754,12 @@ setInterval(() => {
     const hash = location.hash.replace('#', '');
     if (hash === 'admin') {
         const chartContainer = document.querySelector("#admin-chart-usage");
+        const tempContainer = document.querySelector("#admin-chart-temperature");
         if (chartContainer && chartContainer._apexChart) {
             UIUpdater.updateAdminStats();
+        }
+        if (tempContainer && tempContainer._apexChart) {
+            UIUpdater.updateAdminTempGraph();
         }
     }
 }, 5000);
@@ -1574,5 +1788,6 @@ window.addEventListener('hashchange', async () => {
         UIUpdater.updateAdminBookings();
         UIUpdater.updateAdminTickets();
         UIUpdater.updateAdminStats();
+        UIUpdater.updateAdminTempGraph();
     }
 });

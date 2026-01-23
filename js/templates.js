@@ -901,19 +901,30 @@ const Templates = {
 
                     <!-- Tab 5: Statistiques -->
                     <div class="tab-pane fade" id="stats-content" role="tabpanel">
-                        <div class="card bg-white p-4 shadow-sm">
+                        <div class="card bg-white p-4 shadow-sm mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div>
                                     <h6 class="fw-bold text-uppercase text-muted small mb-1">Fréquentation Campus</h6>
-                                    <p class="text-muted small mb-0">Évolution de l'occupation sur 7 jours</p>
+                                    <p class="text-muted small mb-0">Évolution de l'occupation en temps réel</p>
                                 </div>
-                                <select class="form-select form-select-sm w-auto border-0 bg-light fw-bold">
-                                    <option>Cette Semaine</option>
-                                    <option>Ce Mois</option>
-                                    <option>Ce Trimestre</option>
-                                </select>
+                                <div class="badge bg-primary-subtle text-primary px-3 py-2">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>Mise à jour toutes les 5s
+                                </div>
                             </div>
                             <div id="admin-chart-usage" style="min-height: 400px;"></div>
+                        </div>
+
+                        <div class="card bg-white p-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h6 class="fw-bold text-uppercase text-muted small mb-1">Température Moyenne Campus</h6>
+                                    <p class="text-muted small mb-0">Évolution de la température en temps réel</p>
+                                </div>
+                                <div class="badge bg-danger-subtle text-danger px-3 py-2">
+                                    <i class="bi bi-thermometer-half me-2"></i>Mise à jour toutes les 5s
+                                </div>
+                            </div>
+                            <div id="admin-chart-temperature" style="min-height: 400px;"></div>
                         </div>
                     </div>
 
