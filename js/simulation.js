@@ -6,7 +6,7 @@
 const SmartCampus = {
     // Config
     CONFIG: {
-        tickRate: 3000, // ms
+        tickRate: 3000, // ms - Mise à jour toutes les 3 secondes
         weatherApiUrl: 'https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&current=temperature_2m,is_day&timezone=Europe%2FParis',
         baseEnergyLoad: 400, 
         kwhPerPerson: 0.1, 
@@ -61,18 +61,26 @@ const SmartCampus = {
             const remoteRooms = await API.syncRooms(this.state.rooms);
             if (remoteRooms && remoteRooms.length > 0) {
                 // Mapper les données de la BDD vers le format de simulation
-                this.state.rooms = remoteRooms.map(r => ({
-                    id: r.id,
-                    name: r.name,
-                    type: r.room_type === 'cours' ? 'Classroom' : 'Lab',
-                    capacity: r.capacity,
-                    temp: r.temperature || 20,
-                    targetTemp: 21,
-                    occupancy: r.occupancy || 0,
-                    lights: false,
-                    schedule: [],
-                    alert: null
-                }));
+                this.state.rooms = remoteRooms.map(r => {
+                    // Varier la température cible selon le type de salle
+                    let targetTemp = 21;
+                    if (r.room_type === 'labo') targetTemp = 20; // Labos plus frais
+                    else if (r.room_type === 'reunion') targetTemp = 22; // Réunions plus chaud
+                    else if (r.room_type === 'box') targetTemp = 21.5; // Box confortables
+                    
+                    return {
+                        id: r.id,
+                        name: r.name,
+                        type: r.room_type === 'cours' ? 'Classroom' : 'Lab',
+                        capacity: r.capacity,
+                        temp: r.temperature || 20,
+                        targetTemp: targetTemp,
+                        occupancy: r.occupancy || 0,
+                        lights: false,
+                        schedule: [],
+                        alert: null
+                    };
+                });
                 console.log('✅ Salles chargées depuis la base de données');
             }
         } catch (error) {
@@ -82,8 +90,8 @@ const SmartCampus = {
         setInterval(() => this.tick(), this.CONFIG.tickRate);
         setInterval(() => this.randomEvent(), 30000); // Rare events
         
-        // Synchroniser avec le backend toutes les 10 secondes
-        setInterval(() => this.syncWithBackend(), 10000);
+        // Synchroniser avec le backend toutes les 5 secondes
+        setInterval(() => this.syncWithBackend(), 5000);
     },
 
     async fetchWeather() {
@@ -97,8 +105,29 @@ const SmartCampus = {
     },
 
     generateHistory() {
+        // Générer 24 heures d'historique avec variation réaliste
+        const now = new Date();
         for (let i = 0; i < 24; i++) {
-            this.state.energy.history.push(500 + Math.random() * 200);
+            const hour = (now.getHours() - 24 + i + 24) % 24;
+            
+            // Consommation plus élevée pendant les heures de bureau
+            let baseLoad = 300;
+            if (hour >= 8 && hour <= 18) {
+                baseLoad = 500 + Math.sin((hour - 8) / 10 * Math.PI) * 100;
+            } else if (hour >= 19 && hour <= 22) {
+                baseLoad = 400;
+            }
+            
+            // Ajout de variations aléatoires
+            const variation = (Math.random() - 0.5) * 50;
+            const value = baseLoad + variation;
+            
+            // S'assurer que la valeur est valide
+            if (!isNaN(value) && isFinite(value)) {
+                this.state.energy.history.push(value);
+            } else {
+                this.state.energy.history.push(450); // Valeur par défaut
+            }
         }
     },
 
@@ -107,37 +136,241 @@ const SmartCampus = {
         let totalPower = 300;
 
         this.state.rooms.forEach(room => {
+            // Vérifier que la salle est valide
+            if (!room || !room.capacity) return;
+            
             // Occupancy Logic
             const targetRatio = this.getOccupancyTarget(room, hour);
             const targetOcc = room.capacity * targetRatio;
             const fluctuation = (Math.random() - 0.5) * 5;
             room.occupancy = Math.max(0, Math.floor(targetOcc + fluctuation));
             
-            // Temp Logic
-            const peopleHeat = room.occupancy * 0.05;
-            const ambientPull = (this.state.external.temp - room.temp) * 0.05;
-            const hvac = (room.targetTemp - room.temp) * 0.2; // HVAC power
-            room.temp += peopleHeat + ambientPull + hvac;
+            // Gestion automatique des lumières
+            room.lights = room.occupancy > 0 || (hour >= 7 && hour <= 22);
+            
+            // Temp Logic - Améliorée avec des variations plus visibles
+            // S'assurer que temp est un nombre valide
+            if (isNaN(room.temp) || !isFinite(room.temp)) {
+                room.temp = room.targetTemp || 21;
+            }
+            
+            const peopleHeat = room.occupancy * 0.08; // Augmenté de 0.05 à 0.08
+            const ambientPull = (this.state.external.temp - room.temp) * 0.08; // Augmenté de 0.05 à 0.08
+            
+            // HVAC avec plus de variations
+            const hvac = (room.targetTemp - room.temp) * 0.25; // Augmenté de 0.2 à 0.25
+            
+            // Ajout de variations aléatoires pour simuler l'ouverture de portes/fenêtres
+            const randomVariation = (Math.random() - 0.5) * 0.5; // Augmenté de 0.3 à 0.5
+            
+            // Variation selon l'heure (chauffage réduit la nuit)
+            const timeModifier = (hour >= 22 || hour <= 6) ? 0.5 : 1.0;
+            
+            room.temp += (peopleHeat + ambientPull + hvac * timeModifier + randomVariation);
+            
+            // Limiter la température entre 16 et 28°C
+            room.temp = Math.max(16, Math.min(28, room.temp));
             room.temp = Math.round(room.temp * 10) / 10;
 
-            // Power
-            totalPower += room.occupancy * 0.1 + (Math.abs(hvac) * 50);
+            // Power - Calcul plus réaliste
+            const lightingPower = room.lights ? 5 : 0;
+            const hvacPower = Math.abs(hvac) * 50;
+            const occupancyPower = room.occupancy * 0.12;
+            const basePower = room.capacity * 0.05; // Consommation de base
+            
+            const roomPower = basePower + lightingPower + hvacPower + occupancyPower;
+            
+            // Vérifier que roomPower est valide avant de l'ajouter
+            if (!isNaN(roomPower) && isFinite(roomPower)) {
+                totalPower += roomPower;
+            }
         });
 
+        // Ajout de variation aléatoire pour la consommation globale
+        const randomConsumption = (Math.random() - 0.5) * 30;
+        totalPower += randomConsumption;
+        
+        // Vérifier que totalPower est valide
+        if (isNaN(totalPower) || !isFinite(totalPower)) {
+            totalPower = 450; // Valeur par défaut
+        }
+        
         this.updateEnergyState(totalPower);
         window.dispatchEvent(new CustomEvent('campus-update', { detail: this.state }));
         this.updateSidebar(totalPower);
+        this.updateDashboardEnergy(totalPower);
     },
 
     updateEnergyState(totalKw) {
-        this.state.energy.currentConsumption = Math.floor(totalKw);
+        // S'assurer que la valeur est valide
+        const validValue = (!isNaN(totalKw) && isFinite(totalKw)) ? totalKw : 450;
+        
+        this.state.energy.currentConsumption = Math.floor(validValue);
         this.state.energy.history.shift();
-        this.state.energy.history.push(totalKw);
+        this.state.energy.history.push(validValue);
     },
 
     updateSidebar(val) {
         const kwhEl = document.getElementById('sidebar-kwh');
-        if (kwhEl) kwhEl.innerText = Math.round(val);
+        if (kwhEl) {
+            const oldVal = parseInt(kwhEl.innerText) || 0;
+            const newVal = Math.round(val);
+            
+            // Animation de transition
+            if (oldVal !== newVal) {
+                kwhEl.style.transition = 'all 0.5s ease';
+                kwhEl.style.transform = 'scale(1.1)';
+                
+                // Couleur selon la consommation
+                if (newVal > 600) {
+                    kwhEl.style.color = '#ef4444'; // Rouge si consommation élevée
+                } else if (newVal > 500) {
+                    kwhEl.style.color = '#f59e0b'; // Orange
+                } else {
+                    kwhEl.style.color = '#ffffff'; // Blanc
+                }
+                
+                setTimeout(() => {
+                    kwhEl.innerText = newVal;
+                    kwhEl.style.transform = 'scale(1)';
+                }, 250);
+            }
+        }
+        
+        // Mise à jour du sparkline si présent
+        this.updateSparkline();
+    },
+    
+    updateSparkline() {
+        const sparklineEl = document.getElementById('sidebar-sparkline');
+        if (!sparklineEl || this.state.energy.history.length === 0) return;
+        
+        // Afficher les 12 dernières valeurs et filtrer les NaN
+        const recent = this.state.energy.history.slice(-12).filter(v => !isNaN(v) && isFinite(v));
+        
+        if (recent.length === 0) return;
+        
+        const max = Math.max(...recent);
+        const min = Math.min(...recent);
+        const range = (max - min) || 1;
+        
+        // Créer un mini graphique SVG
+        const width = sparklineEl.offsetWidth || 200;
+        const height = 40;
+        const pointWidth = width / recent.length;
+        
+        const points = recent.map((val, i) => {
+            const x = i * pointWidth;
+            const y = height - ((val - min) / range) * height;
+            // Vérifier que x et y sont valides
+            if (isNaN(x) || isNaN(y) || !isFinite(x) || !isFinite(y)) {
+                return null;
+            }
+            return `${x},${y}`;
+        }).filter(p => p !== null).join(' ');
+        
+        if (!points) return;
+        
+        sparklineEl.innerHTML = `
+            <svg width="${width}" height="${height}" style="width: 100%; height: 100%;">
+                <polyline 
+                    points="${points}" 
+                    fill="none" 
+                    stroke="#60a5fa" 
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                />
+            </svg>
+        `;
+    },
+    
+    updateDashboardEnergy(val) {
+        const valueEl = document.getElementById('dashboard-energy-value');
+        const chartEl = document.getElementById('dashboard-energy-chart');
+        const trendEl = document.getElementById('dashboard-energy-trend');
+        
+        if (valueEl) {
+            const oldVal = parseInt(valueEl.innerText) || 0;
+            const newVal = Math.round(val);
+            
+            // Animation de mise à jour
+            if (oldVal !== newVal) {
+                valueEl.style.transition = 'all 0.5s ease';
+                valueEl.style.transform = 'scale(1.05)';
+                
+                setTimeout(() => {
+                    valueEl.innerText = newVal;
+                    valueEl.style.transform = 'scale(1)';
+                }, 250);
+            }
+            
+            // Afficher la tendance
+            if (trendEl) {
+                const diff = newVal - oldVal;
+                if (diff > 0) {
+                    trendEl.innerHTML = '<i class="bi bi-arrow-up"></i> +' + Math.abs(diff) + ' kW/h';
+                    trendEl.style.color = '#fbbf24';
+                } else if (diff < 0) {
+                    trendEl.innerHTML = '<i class="bi bi-arrow-down"></i> -' + Math.abs(diff) + ' kW/h';
+                    trendEl.style.color = '#34d399';
+                } else {
+                    trendEl.innerHTML = '<i class="bi bi-dash"></i> Stable';
+                    trendEl.style.color = '#ffffff';
+                }
+            }
+        }
+        
+        // Mise à jour du mini graphique dans le dashboard
+        if (chartEl && this.state.energy.history.length > 0) {
+            const recent = this.state.energy.history.slice(-12).filter(v => !isNaN(v) && isFinite(v));
+            
+            if (recent.length === 0) return;
+            
+            const max = Math.max(...recent);
+            const min = Math.min(...recent);
+            const range = (max - min) || 1;
+            
+            const width = chartEl.offsetWidth || 300;
+            const height = 40;
+            const pointWidth = width / recent.length;
+            
+            const points = recent.map((val, i) => {
+                const x = i * pointWidth;
+                const y = height - ((val - min) / range) * height;
+                // Vérifier que x et y sont valides
+                if (isNaN(x) || isNaN(y) || !isFinite(x) || !isFinite(y)) {
+                    return null;
+                }
+                return `${x},${y}`;
+            }).filter(p => p !== null).join(' ');
+            
+            if (!points) return;
+            
+            chartEl.innerHTML = `
+                <svg width="${width}" height="${height}" style="width: 100%; height: 100%;">
+                    <defs>
+                        <linearGradient id="energyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:rgba(255,255,255,0.4);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <polyline 
+                        points="${points}" 
+                        fill="none" 
+                        stroke="rgba(255,255,255,0.8)" 
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <polyline 
+                        points="${points} ${width},${height} 0,${height}" 
+                        fill="url(#energyGradient)" 
+                        stroke="none"
+                    />
+                </svg>
+            `;
+        }
     },
 
     randomEvent() {
@@ -239,9 +472,21 @@ const SmartCampus = {
     // Synchroniser avec le backend
     async syncWithBackend() {
         try {
-            await API.pushRoomUpdates(this.state.rooms);
+            // S'assurer que les données sont au bon format
+            if (this.state.rooms && this.state.rooms.length > 0) {
+                // Afficher un échantillon pour le debug
+                const sample = this.state.rooms[0];
+                console.log('🔄 Sync exemple:', {
+                    id: sample.id,
+                    temp: sample.temp,
+                    occupancy: sample.occupancy
+                });
+                
+                await API.pushRoomUpdates(this.state.rooms);
+                console.log('✅ Synchronisation réussie:', this.state.rooms.length, 'salles mises à jour');
+            }
         } catch (error) {
-            console.warn('Synchronisation backend échouée:', error);
+            console.warn('⚠️ Synchronisation backend échouée:', error);
         }
     },
 };

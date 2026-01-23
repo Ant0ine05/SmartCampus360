@@ -34,24 +34,51 @@ Object.keys(ROOM_TO_MAP_ZONE).forEach(roomId => {
     MAP_ZONE_TO_ROOM[zone] = roomId;
 });
 
+// MAP_ZONES pour les coordonnées des alertes
+const MAP_ZONES = {};
+Object.keys(ROOM_TO_MAP_ZONE).forEach(roomId => {
+    const data = ROOM_TO_MAP_ZONE[roomId];
+    MAP_ZONES[data.zone] = { x: data.x, y: data.y };
+});
+
 let currentMapMode = 'occupancy'; // 'occupancy' | 'thermal' | 'tech'
 let transform = { x: 0, y: 0, scale: 1 };
 let isDragging = false;
 let startX, startY;
 let mapRoomsData = []; // Store real rooms data from API
+let mapUpdateInterval = null;
+
+async function loadMapData() {
+    try {
+        mapRoomsData = await API.getRooms();
+        console.log(`🗺️ ${mapRoomsData.length} salles chargées`);
+        
+        // Afficher un exemple de température pour debug
+        if (mapRoomsData.length > 0) {
+            const sample = mapRoomsData[0];
+            console.log(`Exemple ${sample.id}: temp=${sample.temperature}°C, occ=${sample.occupancy}/${sample.capacity}`);
+        }
+        
+        refreshMapColors();
+        
+        // Mettre à jour l'offcanvas si une salle est sélectionnée
+        if (window.selectedRoomId) {
+            updateOffcanvasData(window.selectedRoomId);
+        }
+        
+        return mapRoomsData;
+    } catch (error) {
+        console.error('Erreur chargement données carte:', error);
+        return [];
+    }
+}
 
 async function renderMap() {
     const container = document.getElementById('campus-map');
     if (!container) return;
     
     // Load real rooms data from API
-    try {
-        mapRoomsData = await API.getRooms();
-        console.log(`🗺️ Carte chargée avec ${mapRoomsData.length} salles depuis la BDD`);
-    } catch (error) {
-        console.error('Erreur chargement salles pour la carte:', error);
-        mapRoomsData = [];
-    }
+    await loadMapData();
     
     // Add CSS for map controls if not present
     if(!document.getElementById('map-style')) {
@@ -236,11 +263,14 @@ async function renderMap() {
 
     if (!window.mapUpdaterAttached) {
         window.addEventListener('campus-update', () => {
-            refreshMapColors();
-            if(window.selectedRoomId) updateOffcanvasData(window.selectedRoomId);
+            loadMapData(); // Recharger les données quand la simulation se met à jour
         });
         window.mapUpdaterAttached = true;
     }
+    
+    // Rafraîchir les données toutes les 3 secondes (synchronisé avec la simulation)
+    if (mapUpdateInterval) clearInterval(mapUpdateInterval);
+    mapUpdateInterval = setInterval(() => loadMapData(), 3000);
 }
 
 function setupMapInteractions() {
@@ -429,10 +459,51 @@ async function updateOffcanvasData(roomId) {
         'box': 'Box de Travail'
     };
 
+    // Mettre à jour les informations de base
     setTxt('detail-room-id', room.name);
     setTxt('detail-room-type', typeNames[room.room_type] || room.room_type);
-    setTxt('detail-room-temp', room.temperature + '°C');
-    setTxt('detail-room-occ', room.occupancy);
+    
+    // Afficher la température avec 1 décimale
+    const temp = parseFloat(room.temperature) || 20;
+    setTxt('detail-room-temp', temp.toFixed(1) + '°C');
+    
+    setTxt('detail-room-occ', `${room.occupancy} / ${room.capacity}`);
+    
+    console.log(`📊 Offcanvas mis à jour - ${room.id}: ${temp.toFixed(1)}°C, ${room.occupancy}/${room.capacity}`);
+    
+    // Mettre à jour le statut de la salle
+    const ratio = room.occupancy / (room.capacity || 1);
+    const statusCard = document.getElementById('detail-room-status-card');
+    const statusIcon = document.getElementById('detail-room-status-icon');
+    const statusText = document.getElementById('detail-room-status-text');
+    
+    if (statusCard && statusIcon && statusText) {
+        if (ratio > 0.8) {
+            statusCard.className = 'card bg-danger-subtle border-0 mb-4';
+            statusIcon.className = 'rounded-circle bg-danger text-white p-2 me-3';
+            statusIcon.innerHTML = '<i class="bi bi-x-lg"></i>';
+            statusText.className = 'fw-bold text-danger-emphasis mb-0';
+            statusText.innerText = 'Salle saturée';
+        } else if (ratio > 0.5) {
+            statusCard.className = 'card bg-warning-subtle border-0 mb-4';
+            statusIcon.className = 'rounded-circle bg-warning text-white p-2 me-3';
+            statusIcon.innerHTML = '<i class="bi bi-exclamation-lg"></i>';
+            statusText.className = 'fw-bold text-warning-emphasis mb-0';
+            statusText.innerText = 'Salle occupée';
+        } else if (room.occupancy > 0) {
+            statusCard.className = 'card bg-info-subtle border-0 mb-4';
+            statusIcon.className = 'rounded-circle bg-info text-white p-2 me-3';
+            statusIcon.innerHTML = '<i class="bi bi-people"></i>';
+            statusText.className = 'fw-bold text-info-emphasis mb-0';
+            statusText.innerText = 'Partiellement occupée';
+        } else {
+            statusCard.className = 'card bg-success-subtle border-0 mb-4';
+            statusIcon.className = 'rounded-circle bg-success text-white p-2 me-3';
+            statusIcon.innerHTML = '<i class="bi bi-check-lg"></i>';
+            statusText.className = 'fw-bold text-success-emphasis mb-0';
+            statusText.innerText = 'Actuellement libre';
+        }
+    }
     
     // Load bookings for this room
     try {
@@ -442,10 +513,11 @@ async function updateOffcanvasData(roomId) {
             const time = new Date(nextBooking.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
             setTxt('detail-room-schedule', `Réservé à ${time}`);
         } else {
-            setTxt('detail-room-schedule', 'Libre');
+            setTxt('detail-room-schedule', 'Aucune réservation prévue');
         }
     } catch (error) {
         console.error('Erreur chargement réservations:', error);
+        setTxt('detail-room-schedule', 'Non disponible');
     }
 }
 
@@ -460,5 +532,6 @@ window.updateMapMode = (mode) => {
     }
 };
 window.renderMap = renderMap;
+window.loadMapData = loadMapData;
 window.openRoomDetails = openRoomDetails;
 window.MAP_ZONES = MAP_ZONES; // Export for debugging

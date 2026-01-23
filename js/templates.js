@@ -99,7 +99,7 @@ const Templates = {
 
             <!-- Quick Stats -->
             <div class="card-custom p-4 border-0 shadow-sm bg-white flex-fill">
-                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-graph-up me-2"></i>Statistiques</h6>
+                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-graph-up me-2"></i>Statistiques Campus</h6>
                 
                 <div class="row g-3">
                     <div class="col-6">
@@ -112,6 +112,23 @@ const Templates = {
                         <div class="p-3 bg-light rounded text-center">
                             <h4 class="fw-bold mb-0" id="stat-bookings">0</h4>
                             <small class="text-muted">Réservations</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 rounded text-center position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="d-flex justify-content-between align-items-center text-white">
+                                <div class="text-start">
+                                    <small class="d-block opacity-75 mb-1">Consommation Campus</small>
+                                    <h2 class="fw-bold mb-0" id="dashboard-energy-value">482</h2>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fs-4 fw-bold">kW/h</span>
+                                    <div class="small opacity-75" id="dashboard-energy-trend">
+                                        <i class="bi bi-arrow-up"></i> En direct
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="dashboard-energy-chart" class="mt-2" style="height: 40px;"></div>
                         </div>
                     </div>
                 </div>
@@ -192,7 +209,7 @@ const Templates = {
 <div class="offcanvas offcanvas-end shadow-lg border-0 rounded-start-4 m-3" style="height: calc(100% - 2rem);" tabindex="-1" id="roomOffcanvas" aria-labelledby="roomOffcanvasLabel">
   <div class="offcanvas-header pt-4 px-4 sticky-top bg-white z-index-10">
     <div>
-        <span class="badge bg-primary-subtle text-primary mb-2 rounded-pill px-3">Salle de Cours</span>
+        <span class="badge bg-primary-subtle text-primary mb-2 rounded-pill px-3" id="detail-room-type">Salle de Cours</span>
         <h3 class="offcanvas-title fw-bold" id="detail-room-id">B201</h3>
     </div>
     <button type="button" class="btn-close text-reset bg-light rounded-circle p-2" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -200,12 +217,12 @@ const Templates = {
   
   <div class="offcanvas-body px-4 pb-4 custom-scrollbar">
     <!-- Quick Status -->
-    <div class="card bg-success-subtle border-0 mb-4">
+    <div class="card bg-success-subtle border-0 mb-4" id="detail-room-status-card">
         <div class="card-body d-flex align-items-center">
-             <div class="rounded-circle bg-success text-white p-2 me-3"><i class="bi bi-check-lg"></i></div>
+             <div class="rounded-circle bg-success text-white p-2 me-3" id="detail-room-status-icon"><i class="bi bi-check-lg"></i></div>
              <div>
-                 <h6 class="fw-bold text-success-emphasis mb-0">Actuellement Libre</h6>
-                 <small class="text-success-emphasis opacity-75">Jusqu'à 14:00</small>
+                 <h6 class="fw-bold text-success-emphasis mb-0" id="detail-room-status-text">Actuellement Libre</h6>
+                 <small class="text-success-emphasis opacity-75" id="detail-room-schedule">Jusqu'à 14:00</small>
              </div>
         </div>
     </div>
