@@ -15,7 +15,8 @@ const dbConfig = {
     port: 3306,
     user: process.env.DB_USER || 'admin',
     password: process.env.DB_PASSWORD || 'admin123',
-    database: process.env.DB_NAME || 'smartcampus'
+    database: process.env.DB_NAME || 'smartcampus',
+    charset: 'utf8mb4'
 };
 
 // Pool de connexions

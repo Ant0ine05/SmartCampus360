@@ -163,6 +163,84 @@ const UIUpdater = {
     },
 
     /**
+     * Afficher l'historique des tickets résolus
+     */
+    async updateTicketHistory() {
+        const container = document.getElementById('history-tickets');
+        if (!container) return;
+
+        try {
+            const allTickets = await API.getTickets();
+            const resolvedTickets = allTickets.filter(t => t.status === 'resolu');
+
+            if (resolvedTickets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
+                        <p class="text-muted mt-3">Aucun ticket résolu dans l'historique</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-responsive bg-white rounded shadow-sm">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0 ps-4">ID</th>
+                                <th class="border-0">Sujet</th>
+                                <th class="border-0">Lieu</th>
+                                <th class="border-0">Priorité</th>
+                                <th class="border-0">Créé le</th>
+                                <th class="border-0 pe-4 text-end">Traité par</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${resolvedTickets.map(ticket => {
+                                const priorityMap = {
+                                    'urgent': '<span class="badge bg-danger-subtle text-danger">Urgent</span>',
+                                    'moyen': '<span class="badge bg-warning-subtle text-warning">Normal</span>',
+                                    'bas': '<span class="badge bg-success-subtle text-success">Bas</span>'
+                                };
+                                const priority = priorityMap[ticket.priority] || priorityMap['moyen'];
+
+                                const createdDate = new Date(ticket.created_at).toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'short'
+                                });
+
+                                return `
+                                <tr>
+                                    <td class="ps-4 text-muted small font-monospace">#TK-${ticket.id}</td>
+                                    <td>
+                                        <span class="fw-bold text-dark">${ticket.title}</span>
+                                        ${ticket.description ? `<br><span class="text-muted small">${ticket.description.substring(0, 50)}...</span>` : ''}
+                                    </td>
+                                    <td><span class="badge bg-light text-dark border">${ticket.location || 'N/A'}</span></td>
+                                    <td>${priority}</td>
+                                    <td class="text-muted small">${createdDate}</td>
+                                    <td class="pe-4 text-end">
+                                        ${ticket.firstname ? `<small class="text-muted">${ticket.firstname} ${ticket.lastname}</small>` : '<small class="text-muted fst-italic">N/A</small>'}
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Erreur chargement historique:', error);
+            container.innerHTML = `
+                <div class="alert alert-danger m-3">
+                    Erreur lors du chargement de l'historique des tickets
+                </div>
+            `;
+        }
+    },
+
+    /**
      * Afficher les réservations récentes
      */
     async updateBookingsList() {

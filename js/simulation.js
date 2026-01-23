@@ -210,6 +210,11 @@ const SmartCampus = {
                 
                 this.showToast('success', `Ticket créé avec succès (ID: ${result.id})`);
                 
+                // Refresh the tickets list
+                if (typeof UIUpdater !== 'undefined' && UIUpdater.updateMaintenancePage) {
+                    UIUpdater.updateMaintenancePage();
+                }
+                
                 // Reset form after delay
                 setTimeout(() => {
                     form.reset();

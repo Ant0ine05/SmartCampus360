@@ -446,34 +446,10 @@ const Templates = {
 
             <!-- Tab 3: History -->
             <div class="tab-pane fade" id="history-tickets" role="tabpanel">
-                <div class="table-responsive bg-white rounded shadow-sm">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="border-0 ps-4">ID</th>
-                                <th class="border-0">Sujet</th>
-                                <th class="border-0">Lieu</th>
-                                <th class="border-0">Résolu le</th>
-                                <th class="border-0 pe-4 text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-4 text-muted small">#TK-988</td>
-                                <td><span class="fw-bold text-dark">Remplacement Toner</span><br><span class="text-muted small">Imprimante Admin</span></td>
-                                <td>Admin</td>
-                                <td>15 Jan</td>
-                                <td class="pe-4 text-end"><button class="btn btn-sm btn-light border">Voir</button></td>
-                            </tr>
-                            <tr>
-                                <td class="ps-4 text-muted small">#TK-902</td>
-                                <td><span class="fw-bold text-dark">Porte bloquée</span><br><span class="text-muted small">Serrure forcée</span></td>
-                                <td>Salle 104</td>
-                                <td>12 Jan</td>
-                                <td class="pe-4 text-end"><button class="btn btn-sm btn-light border">Voir</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- L'historique sera chargé dynamiquement -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p class="text-muted">Chargement de l'historique...</p>
                 </div>
             </div>
 

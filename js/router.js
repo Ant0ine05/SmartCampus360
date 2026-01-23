@@ -338,20 +338,39 @@ const Router = {
     },
 
     async initMaintenance() {
-        // Load rooms for the ticket form dropdown
-        try {
-            const rooms = await API.getRooms();
-            const roomSelect = document.querySelector('#new-ticket select[name="location"]');
-            
-            if (roomSelect && rooms.length > 0) {
-                // Keep the placeholder and "Autre" option, add real rooms
-                const options = '<option value="">Sélectionner une salle...</option>' +
-                    rooms.map(r => `<option value="${r.id}">${r.name} (${r.id})</option>`).join('') +
-                    '<option value="other">Autre / Couloir</option>';
-                roomSelect.innerHTML = options;
-            }
-        } catch (error) {
-            console.error('Erreur chargement des salles:', error);
+        // Load initial active tickets
+        if (typeof UIUpdater !== 'undefined') {
+            UIUpdater.updateMaintenancePage();
+        }
+
+        // Load rooms for the ticket form dropdown when new-ticket tab is clicked
+        const newTicketTab = document.getElementById('new-tab');
+        if (newTicketTab) {
+            newTicketTab.addEventListener('shown.bs.tab', async () => {
+                try {
+                    const rooms = await API.getRooms();
+                    const roomSelect = document.querySelector('#new-ticket select[name="location"]');
+                    
+                    if (roomSelect && rooms.length > 0) {
+                        const options = '<option value="">Sélectionner une salle...</option>' +
+                            rooms.map(r => `<option value="${r.id}">${r.name} (${r.id})</option>`).join('') +
+                            '<option value="other">Autre / Couloir</option>';
+                        roomSelect.innerHTML = options;
+                    }
+                } catch (error) {
+                    console.error('Erreur chargement des salles:', error);
+                }
+            });
+        }
+
+        // Load ticket history when history tab is clicked
+        const historyTab = document.getElementById('history-tab');
+        if (historyTab) {
+            historyTab.addEventListener('shown.bs.tab', async () => {
+                if (typeof UIUpdater !== 'undefined') {
+                    UIUpdater.updateTicketHistory();
+                }
+            });
         }
     },
     
