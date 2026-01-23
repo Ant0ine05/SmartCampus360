@@ -1,4 +1,19 @@
 const Router = {
+    getCurrentUser() {
+        const token = localStorage.getItem('sc360_auth');
+        if (!token) return null;
+        try {
+            return JSON.parse(token);
+        } catch {
+            return null;
+        }
+    },
+
+    isAdmin() {
+        const user = this.getCurrentUser();
+        return user && user.role === 'admin';
+    },
+
     init() {
         window.addEventListener('hashchange', () => this.loadRoute(location.hash));
         
@@ -12,6 +27,7 @@ const Router = {
         
         this.loadRoute(location.hash);
         this.setupLogout();
+        this.updateSidebarMenu();
     },
 
     async loadRoute(hash) {
@@ -25,6 +41,14 @@ const Router = {
         }
 
         if (token && routeName === 'login') {
+            location.hash = '#dashboard';
+            return;
+        }
+
+        // Permission Guard - Vérifier les pages réservées aux admins
+        const adminOnlyPages = ['maintenance', 'admin'];
+        if (adminOnlyPages.includes(routeName) && !this.isAdmin()) {
+            alert('Accès refusé : cette page est réservée aux administrateurs.');
             location.hash = '#dashboard';
             return;
         }
@@ -114,6 +138,8 @@ const Router = {
                     role: user.role
                 }));
                 location.hash = '#dashboard';
+                // Mettre à jour le menu après connexion
+                setTimeout(() => this.updateSidebarMenu(), 100);
             } else {
                 alert('Email ou mot de passe incorrect');
             }
@@ -138,6 +164,22 @@ const Router = {
                 this.logout();
             });
         });
+    },
+
+    updateSidebarMenu() {
+        const isAdmin = this.isAdmin();
+        
+        // Masquer les pages admin pour les utilisateurs lambda
+        const maintenanceLink = document.querySelector('a[href="#maintenance"]');
+        const adminLink = document.querySelector('a[href="#admin"]');
+        
+        if (!isAdmin) {
+            if (maintenanceLink) maintenanceLink.style.display = 'none';
+            if (adminLink) adminLink.style.display = 'none';
+        } else {
+            if (maintenanceLink) maintenanceLink.style.display = '';
+            if (adminLink) adminLink.style.display = '';
+        }
     },
 
     initDashboard() {
@@ -212,8 +254,80 @@ const Router = {
 
     initMap() {
         if (typeof renderMap === 'function') {
-            setTimeout(renderMap, 100); 
+            setTimeout(() => {
+                renderMap();
+                this.updateMapForRole();
+                this.initMapLegend();
+            }, 100); 
         }
+    },
+
+    updateMapForRole() {
+        const isAdmin = this.isAdmin();
+        
+        // Masquer les modes Température et Tech pour les utilisateurs lambda
+        const adminOnlyElements = document.querySelectorAll('.map-admin-only');
+        adminOnlyElements.forEach(el => {
+            if (!isAdmin) {
+                el.style.display = 'none';
+            } else {
+                el.style.display = '';
+            }
+        });
+    },
+
+    initMapLegend() {
+        // Initialiser la légende avec le mode Occupation par défaut
+        this.updateMapLegend('occupancy');
+    },
+
+    updateMapLegend(mode) {
+        const legendTitle = document.getElementById('legend-title');
+        const legendContent = document.getElementById('legend-content');
+        
+        if (!legendTitle || !legendContent) return;
+
+        const legends = {
+            'occupancy': {
+                title: 'Légende - Taux d\'Occupation',
+                items: [
+                    { color: '#1e293b', label: 'Peu occupée', description: '< 40% de capacité' },
+                    { color: '#78350f', label: 'Occupation moyenne', description: '40-80% de capacité' },
+                    { color: '#7f1d1d', label: 'Très occupée', description: '> 80% de capacité' }
+                ]
+            },
+            'thermal': {
+                title: 'Légende - Température',
+                items: [
+                    { color: '#1e3a8a', label: 'Froid', description: '< 19°C' },
+                    { color: '#14532d', label: 'Optimal', description: '19-23°C' },
+                    { color: '#7f1d1d', label: 'Chaud', description: '> 23°C' }
+                ]
+            },
+            'tech': {
+                title: 'Légende - Type de Salle',
+                items: [
+                    { color: '#1e293b', label: 'Salle de cours', description: 'Amphithéâtre, cours' },
+                    { color: '#4c1d95', label: 'Laboratoire', description: 'TP, recherche' },
+                    { color: '#064e3b', label: 'Réunion', description: 'Salle de réunion' },
+                    { color: '#1e3a8a', label: 'Box travail', description: 'Espace individuel' }
+                ]
+            }
+        };
+
+        const currentLegend = legends[mode] || legends.occupancy;
+        
+        legendTitle.textContent = currentLegend.title;
+        
+        legendContent.innerHTML = currentLegend.items.map(item => `
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <span class="d-inline-block rounded me-2" style="width: 16px; height: 16px; background-color: ${item.color};"></span>
+                    <span class="fw-bold text-light small">${item.label}</span>
+                </div>
+                <span class="text-secondary ms-2 small">${item.description}</span>
+            </div>
+        `).join('');
     },
 
     async initBooking() {

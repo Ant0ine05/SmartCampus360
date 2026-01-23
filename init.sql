@@ -88,18 +88,26 @@ INSERT INTO users (lastname, firstname, email, password, role) VALUES
 
 -- Insertion des salles
 INSERT INTO rooms (id, name, capacity, nb_pc, room_type, temperature, occupancy) VALUES
-('A101', 'Amphitheatre A', 200, 0, 'cours', 21.5, 45),
-('A102', 'Salle TP Info 1', 30, 30, 'labo', 22.0, 28),
-('A103', 'Salle TP Info 2', 30, 30, 'labo', 21.8, 15),
-('B201', 'Salle de cours B201', 50, 1, 'cours', 20.5, 0),
-('B202', 'Salle de cours B202', 50, 1, 'cours', 21.0, 35),
-('B203', 'Salle reunion 1', 15, 0, 'reunion', 22.5, 8),
-('C301', 'Labo Recherche', 20, 15, 'labo', 21.2, 12),
-('C302', 'Box Travail 1', 6, 2, 'box', 20.8, 4),
-('C303', 'Box Travail 2', 6, 2, 'box', 21.3, 0),
-('D401', 'Amphitheatre D', 150, 0, 'cours', 22.0, 120),
-('D402', 'Salle Projet', 25, 10, 'labo', 21.5, 18),
-('E501', 'Salle Visio', 12, 1, 'reunion', 21.0, 5);
+('A101', 'Garden Room', 60, 0, 'reunion', 21.5, 45),
+('A102', 'Orange Room', 40, 15, 'labo', 22.0, 28),
+('A103', 'Gymnase', 100, 0, 'cours', 21.8, 15),
+('B201', 'Blue Room', 50, 1, 'cours', 20.5, 0),
+('B202', 'Cafeteria', 80, 1, 'reunion', 21.0, 35),
+('B203', 'Bibliotheque', 60, 0, 'reunion', 22.5, 8),
+('C301', 'Green Room', 30, 15, 'labo', 21.2, 12),
+('C302', 'Art Room', 25, 2, 'cours', 20.8, 4),
+('C303', 'Labo Chimie', 20, 5, 'labo', 21.3, 0),
+('D401', 'Salle Serveur', 5, 3, 'labo', 22.0, 2),
+('D402', 'IP Room', 25, 20, 'labo', 21.5, 18),
+('E501', 'Rest Room 1', 10, 0, 'reunion', 21.0, 5),
+('E502', 'Cubicle Nord', 8, 4, 'box', 20.5, 3),
+('E503', 'Salle Library Class', 35, 5, 'cours', 21.8, 20),
+('F101', 'Infirmerie', 8, 1, 'reunion', 22.0, 1),
+('F102', 'Cuisine', 15, 0, 'reunion', 23.5, 8),
+('F103', 'Salle Anglais', 30, 1, 'cours', 21.2, 15),
+('F104', 'Cubicle Sud', 8, 4, 'box', 20.8, 2),
+('G201', 'Toilettes Humides', 5, 0, 'reunion', 20.0, 0),
+('G202', 'Toilettes Seches', 5, 0, 'reunion', 20.0, 0);
 
 -- Insertion des reservations
 INSERT INTO bookings (room_id, user_id, user_name, start_time, end_time, status) VALUES

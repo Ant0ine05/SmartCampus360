@@ -157,38 +157,25 @@ const Templates = {
         </div>
 
         <!-- View Modes (Segmented Control) -->
-        <div class="bg-dark border border-secondary rounded-pill shadow-lg p-1 pointer-auto d-flex">
+        <div class="bg-dark border border-secondary rounded-pill shadow-lg p-1 pointer-auto d-flex" id="map-mode-selector">
              <input type="radio" class="btn-check" name="mapmode" id="mode-occ" autocomplete="off" checked onchange="updateMapMode('occupancy')">
              <label class="btn btn-sm rounded-pill btn-outline-primary border-0 fw-bold px-3 transition-all" for="mode-occ"><i class="bi bi-people-fill me-2"></i>Occupation</label>
              
-             <input type="radio" class="btn-check" name="mapmode" id="mode-nrg" autocomplete="off" onchange="updateMapMode('thermal')">
-             <label class="btn btn-sm rounded-pill btn-outline-warning border-0 fw-bold px-3 transition-all" for="mode-nrg"><i class="bi bi-lightning-charge-fill me-2"></i>Conso / Thermique</label>
+             <input type="radio" class="btn-check map-admin-only" name="mapmode" id="mode-nrg" autocomplete="off" onchange="updateMapMode('thermal')">
+             <label class="btn btn-sm rounded-pill btn-outline-warning border-0 fw-bold px-3 transition-all map-admin-only" for="mode-nrg"><i class="bi bi-thermometer-half me-2"></i>Température</label>
              
-             <input type="radio" class="btn-check" name="mapmode" id="mode-tech" autocomplete="off" onchange="updateMapMode('tech')">
-             <label class="btn btn-sm rounded-pill btn-outline-white text-light border-0 fw-bold px-3 transition-all" for="mode-tech"><i class="bi bi-router-fill me-2"></i>Tech</label>
+             <input type="radio" class="btn-check map-admin-only" name="mapmode" id="mode-tech" autocomplete="off" onchange="updateMapMode('tech')">
+             <label class="btn btn-sm rounded-pill btn-outline-white text-light border-0 fw-bold px-3 transition-all map-admin-only" for="mode-tech"><i class="bi bi-router-fill me-2"></i>Tech</label>
         </div>
     </div>
 
     <!-- Bottom Controls & Legend (Z-10) -->
     <div class="position-absolute bottom-0 start-0 w-100 p-4 d-flex justify-content-between align-items-end pointer-none" style="z-index: 10;">
         <!-- Legend -->
-        <div class="card bg-dark border border-secondary shadow-lg p-3 pointer-auto text-white" style="min-width: 240px; border-radius: 12px;">
-             <small class="text-uppercase text-secondary fw-bold ls-1 mb-2 d-block" style="font-size: 0.7rem;">Statut des Salles</small>
-             <div class="d-flex flex-column gap-2 text-small">
-                  <div class="d-flex align-items-center">
-                      <span class="d-inline-block rounded-circle bg-success me-2" style="width: 8px; height: 8px;"></span>
-                      <span class="fw-bold text-light small">Libre</span>
-                      <span class="text-secondary ms-auto small">Directement accessible</span>
-                  </div>
-                  <div class="d-flex align-items-center">
-                      <span class="d-inline-block rounded-circle bg-warning me-2" style="width: 8px; height: 8px;"></span>
-                      <span class="fw-bold text-light small">Bientôt Occupé</span>
-                      <span class="text-secondary ms-auto small text-warning">&lt; 15 min</span>
-                  </div>
-                  <div class="d-flex align-items-center">
-                      <span class="d-inline-block rounded-circle bg-danger me-2" style="width: 8px; height: 8px;"></span>
-                      <span class="fw-bold text-light small">Réservé / Saturé</span>
-                  </div>
+        <div class="card bg-dark border border-secondary shadow-lg p-3 pointer-auto text-white" style="min-width: 280px; border-radius: 12px;">
+             <small class="text-uppercase text-secondary fw-bold ls-1 mb-2 d-block" style="font-size: 0.7rem;" id="legend-title">Légende - Occupation</small>
+             <div id="legend-content" class="d-flex flex-column gap-2 text-small">
+                  <!-- Contenu dynamique injecté par JavaScript -->
              </div>
         </div>
 
