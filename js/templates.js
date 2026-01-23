@@ -637,8 +637,11 @@ const Templates = {
 <div class="row g-4 mb-4">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="fw-bold mb-0 text-dark">Supervision Campus</h3>
-            <button class="btn btn-outline-primary btn-sm"><i class="bi bi-download me-2"></i>Export Rapport</button>
+            <h3 class="fw-bold mb-0 text-dark">Administration & Supervision</h3>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" onclick="UIUpdater.refreshAdminPage()"><i class="bi bi-arrow-clockwise me-2"></i>Actualiser</button>
+                <button class="btn btn-primary btn-sm"><i class="bi bi-download me-2"></i>Export Rapport</button>
+            </div>
         </div>
     </div>
 
@@ -646,9 +649,9 @@ const Templates = {
     <div class="col-md-3">
         <div class="card-custom p-3 bg-white border-0 shadow-sm h-100 d-flex flex-row align-items-center justify-content-between">
             <div>
-                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Occupation Globale</h6>
-                 <h2 class="fw-bold text-dark mb-0">78%</h2>
-                 <small class="text-success fw-bold"><i class="bi bi-arrow-up-short"></i>+12% vs Hier</small>
+                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Salles Totales</h6>
+                 <h2 class="fw-bold text-dark mb-0" id="admin-total-rooms">0</h2>
+                 <small class="text-muted fw-bold" id="admin-rooms-active">0 actives</small>
             </div>
             <div class="icon-circle bg-primary-subtle text-primary"><i class="bi bi-buildings"></i></div>
         </div>
@@ -656,9 +659,9 @@ const Templates = {
     <div class="col-md-3">
         <div class="card-custom p-3 bg-white border-0 shadow-sm h-100 d-flex flex-row align-items-center justify-content-between">
              <div>
-                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Tickets Ouverts</h6>
-                 <h2 class="fw-bold text-dark mb-0">14</h2>
-                 <small class="text-danger fw-bold"><i class="bi bi-arrow-up-short"></i>Critique: 2</small>
+                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Tickets Actifs</h6>
+                 <h2 class="fw-bold text-dark mb-0" id="admin-tickets-active">0</h2>
+                 <small class="text-danger fw-bold" id="admin-tickets-urgent">0 urgents</small>
             </div>
             <div class="icon-circle bg-warning-subtle text-warning"><i class="bi bi-ticket-perforated"></i></div>
         </div>
@@ -666,125 +669,185 @@ const Templates = {
     <div class="col-md-3">
          <div class="card-custom p-3 bg-white border-0 shadow-sm h-100 d-flex flex-row align-items-center justify-content-between">
              <div>
-                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Demandes Valid.</h6>
-                 <h2 class="fw-bold text-dark mb-0">8</h2>
-                 <small class="text-muted">En attente</small>
+                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Réservations</h6>
+                 <h2 class="fw-bold text-dark mb-0" id="admin-bookings-total">0</h2>
+                 <small class="text-muted" id="admin-bookings-today">0 aujourd'hui</small>
             </div>
-            <div class="icon-circle bg-purple-subtle text-purple"><i class="bi bi-check2-circle"></i></div>
+            <div class="icon-circle bg-purple-subtle text-purple"><i class="bi bi-calendar-check"></i></div>
         </div>
     </div>
     <div class="col-md-3">
          <div class="card-custom p-3 bg-white border-0 shadow-sm h-100 d-flex flex-row align-items-center justify-content-between">
              <div>
-                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Conso. Énergie</h6>
-                 <h2 class="fw-bold text-dark mb-0">450 <span class="fs-6 text-muted">kWh</span></h2>
-                 <small class="text-success fw-bold">-5% vs Moyenne</small>
+                 <h6 class="text-muted text-uppercase small fw-bold ls-1 mb-1">Utilisateurs</h6>
+                 <h2 class="fw-bold text-dark mb-0" id="admin-users-total">0</h2>
+                 <small class="text-success fw-bold" id="admin-users-admins">0 admins</small>
             </div>
-            <div class="icon-circle bg-success-subtle text-success"><i class="bi bi-lightning-charge"></i></div>
+            <div class="icon-circle bg-success-subtle text-success"><i class="bi bi-people"></i></div>
         </div>
     </div>
 
-    <!-- Charts & Main Content -->
-    <div class="col-lg-8">
-        <div class="card-custom p-4 bg-white border-0 shadow-sm h-100">
-             <div class="d-flex justify-content-between align-items-center mb-4">
-                 <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-0">Fréquentation & Usage</h6>
-                 <select class="form-select form-select-sm w-auto border-0 bg-light fw-bold">
-                     <option>Cette Semaine</option>
-                     <option>Ce Mois</option>
-                 </select>
-             </div>
-             <div id="admin-chart-usage" style="min-height: 300px;"></div>
-        </div>
-    </div>
+    <!-- Main Content Tabs -->
+    <div class="col-12">
+        <div class="card-custom p-0 border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom p-0">
+                <ul class="nav nav-tabs nav-fill card-header-tabs m-0" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-3 fw-bold rounded-0" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-content" type="button" role="tab">
+                            <i class="bi bi-people me-2"></i>Utilisateurs
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold rounded-0" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms-content" type="button" role="tab">
+                            <i class="bi bi-door-closed me-2"></i>Salles
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold rounded-0" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings-content" type="button" role="tab">
+                            <i class="bi bi-calendar-check me-2"></i>Réservations
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold rounded-0" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets-content" type="button" role="tab">
+                            <i class="bi bi-ticket-perforated me-2"></i>Tickets
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold rounded-0" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-content" type="button" role="tab">
+                            <i class="bi bi-graph-up me-2"></i>Statistiques
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
-    <!-- Side Lists -->
-    <div class="col-lg-4">
-        <div class="d-flex flex-column gap-4 h-100">
-             <!-- Pending Requests -->
-             <div class="card-custom p-4 bg-white border-0 shadow-sm flex-fill">
-                  <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3">À Valider (4)</h6>
-                  <div class="d-flex flex-column gap-3">
-                      <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-light">
-                          <div class="d-flex align-items-center">
-                              <img src="https://ui-avatars.com/api/?name=Alice+D&background=random" class="rounded-circle me-3" style="width:32px;height:32px;">
-                              <div class="lh-1">
-                                  <span class="d-block fw-bold small text-dark">Alice D.</span>
-                                  <small class="text-muted" style="font-size: 0.75rem;">Salle Conf. • 14:00</small>
-                              </div>
-                          </div>
-                          <div class="btn-group">
-                              <button class="btn btn-sm btn-white text-success border shadow-sm" title="Valider" onclick="SmartCampus.showToast('success', 'Réservation validée')"><i class="bi bi-check-lg"></i></button>
-                              <button class="btn btn-sm btn-white text-danger border shadow-sm" title="Refuser"><i class="bi bi-x-lg"></i></button>
-                          </div>
-                      </div>
-                      <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-light">
-                          <div class="d-flex align-items-center">
-                              <img src="https://ui-avatars.com/api/?name=Bob+M&background=random" class="rounded-circle me-3" style="width:32px;height:32px;">
-                              <div class="lh-1">
-                                  <span class="d-block fw-bold small text-dark">Bob M.</span>
-                                  <small class="text-muted" style="font-size: 0.75rem;">Prêt Projecteur</small>
-                              </div>
-                          </div>
-                          <div class="btn-group">
-                              <button class="btn btn-sm btn-white text-success border shadow-sm" title="Valider" onclick="SmartCampus.showToast('success', 'Demande approuvée')"><i class="bi bi-check-lg"></i></button>
-                              <button class="btn btn-sm btn-white text-danger border shadow-sm" title="Refuser"><i class="bi bi-x-lg"></i></button>
-                          </div>
-                      </div>
-                  </div>
-                  <button class="btn btn-link text-center w-100 mt-2 small text-muted text-decoration-none">Voir tout</button>
-             </div>
+            <div class="card-body p-4 bg-light">
+                <div class="tab-content" id="adminTabContent">
+                    
+                    <!-- Tab 1: Utilisateurs -->
+                    <div class="tab-pane fade show active" id="users-content" role="tabpanel">
+                        <div class="table-responsive bg-white rounded shadow-sm">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4">ID</th>
+                                        <th class="border-0">Nom</th>
+                                        <th class="border-0">Email</th>
+                                        <th class="border-0">Rôle</th>
+                                        <th class="border-0 pe-4 text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-table">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="text-muted mt-2">Chargement...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-             <!-- Quick Actions -->
-             <div class="card-custom p-4 bg-primary text-white border-0 shadow-sm">
-                  <h6 class="fw-bold text-uppercase small ls-1 mb-3 text-white-50">Actions Rapides</h6>
-                  <div class="d-grid gap-2">
-                       <button class="btn btn-light text-primary fw-bold text-start"><i class="bi bi-megaphone me-2"></i>Diffuser Message</button>
-                       <button class="btn btn-outline-light text-start"><i class="bi bi-door-closed me-2"></i>Verrouillage Global</button>
-                  </div>
-             </div>
-        </div>
-    </div>
-    
-    <!-- Recent Activity Table -->
-     <div class="col-12">
-        <div class="card-custom p-4 bg-white border-0 shadow-sm">
-            <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3">Dernières Activités Supervisées</h6>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="border-0 text-secondary small text-uppercase">Horodatage</th>
-                            <th class="border-0 text-secondary small text-uppercase">Utilisateur</th>
-                            <th class="border-0 text-secondary small text-uppercase">Action</th>
-                            <th class="border-0 text-secondary small text-uppercase">Cible</th>
-                            <th class="border-0 text-secondary small text-uppercase">Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="text-muted small">Aujourd'hui, 09:42</td>
-                            <td><div class="fw-bold text-dark">Thomas Anderson</div></td>
-                            <td>Badge Accès</td>
-                            <td>Labo Informatique (L203)</td>
-                            <td><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Autorisé</span></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted small">Aujourd'hui, 09:15</td>
-                            <td><div class="fw-bold text-dark">Bureau Admin</div></td>
-                            <td>Changement Température</td>
-                            <td>Amphi A (C101)</td>
-                            <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Ajusté 21°C</span></td>
-                        </tr>
-                         <tr>
-                            <td class="text-muted small">Hier, 18:30</td>
-                            <td><div class="fw-bold text-dark">Système Auto</div></td>
-                            <td>Extinction Lumières</td>
-                            <td>Zone Est (Tout)</td>
-                            <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">Auto</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <!-- Tab 2: Salles -->
+                    <div class="tab-pane fade" id="rooms-content" role="tabpanel">
+                        <div class="table-responsive bg-white rounded shadow-sm">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4">ID</th>
+                                        <th class="border-0">Nom</th>
+                                        <th class="border-0">Type</th>
+                                        <th class="border-0">Capacité</th>
+                                        <th class="border-0">Température</th>
+                                        <th class="border-0">Occupation</th>
+                                        <th class="border-0 pe-4">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-rooms-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="text-muted mt-2">Chargement...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Réservations -->
+                    <div class="tab-pane fade" id="bookings-content" role="tabpanel">
+                        <div class="table-responsive bg-white rounded shadow-sm">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4">ID</th>
+                                        <th class="border-0">Utilisateur</th>
+                                        <th class="border-0">Salle</th>
+                                        <th class="border-0">Début</th>
+                                        <th class="border-0">Fin</th>
+                                        <th class="border-0">Statut</th>
+                                        <th class="border-0 pe-4 text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-bookings-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="text-muted mt-2">Chargement...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Tickets -->
+                    <div class="tab-pane fade" id="tickets-content" role="tabpanel">
+                        <div class="table-responsive bg-white rounded shadow-sm">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 ps-4">ID</th>
+                                        <th class="border-0">Titre</th>
+                                        <th class="border-0">Créateur</th>
+                                        <th class="border-0">Priorité</th>
+                                        <th class="border-0">Lieu</th>
+                                        <th class="border-0">Statut</th>
+                                        <th class="border-0 pe-4 text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-tickets-table">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="text-muted mt-2">Chargement...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab 5: Statistiques -->
+                    <div class="tab-pane fade" id="stats-content" role="tabpanel">
+                        <div class="card bg-white p-4 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h6 class="fw-bold text-uppercase text-muted small mb-1">Fréquentation Campus</h6>
+                                    <p class="text-muted small mb-0">Évolution de l'occupation sur 7 jours</p>
+                                </div>
+                                <select class="form-select form-select-sm w-auto border-0 bg-light fw-bold">
+                                    <option>Cette Semaine</option>
+                                    <option>Ce Mois</option>
+                                    <option>Ce Trimestre</option>
+                                </select>
+                            </div>
+                            <div id="admin-chart-usage" style="min-height: 400px;"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
