@@ -5,26 +5,26 @@
 
 // Mapping des vraies salles de la BDD vers les zones de la carte
 const ROOM_TO_MAP_ZONE = {
-    'A101': { x: 250, y: 240, zone: 'GARDEN' },
-    'A102': { x: 400, y: 525, zone: 'ORANGE' },
-    'A103': { x: 800, y: 575, zone: 'GYM' },
-    'B201': { x: 200, y: 725, zone: 'BLUE' },
-    'B202': { x: 425, y: 790, zone: 'CAFE' },
-    'B203': { x: 825, y: 350, zone: 'LIBRARY' },
-    'C301': { x: 1190, y: 525, zone: 'GREEN' },
-    'C302': { x: 1190, y: 725, zone: 'ART' },
-    'C303': { x: 1550, y: 670, zone: 'CHEMISTRY' },
-    'D401': { x: 100, y: 475, zone: 'SERVER' },
-    'D402': { x: 650, y: 300, zone: 'IP_ROOM' },
-    'E501': { x: 500, y: 200, zone: 'REST1' },
-    'E502': { x: 600, y: 200, zone: 'NCUB' },
-    'E503': { x: 825, y: 200, zone: 'LIB_CLASS' },
-    'F101': { x: 425, y: 690, zone: 'NURSE' },
-    'F102': { x: 610, y: 750, zone: 'KITCHEN' },
-    'F103': { x: 725, y: 710, zone: 'ENGLISH' },
-    'F104': { x: 725, y: 810, zone: 'SCUB' },
-    'G201': { x: 1425, y: 610, zone: 'WET_REST' },
-    'G202': { x: 1425, y: 730, zone: 'DRY_REST' }
+    'A101': { x: 150, y: 150, zone: 'GARDEN' },
+    'A102': { x: 500, y: 400, zone: 'ORANGE' },
+    'A103': { x: 900, y: 500, zone: 'GYM' },
+    'B201': { x: 150, y: 725, zone: 'BLUE' },
+    'B202': { x: 425, y: 675, zone: 'CAFE' },
+    'B203': { x: 975, y: 200, zone: 'LIBRARY' },
+    'C301': { x: 1250, y: 275, zone: 'GREEN' },
+    'C302': { x: 1250, y: 575, zone: 'ART' },
+    'C303': { x: 1425, y: 475, zone: 'CHEMISTRY' },
+    'D401': { x: 150, y: 575, zone: 'SERVER' },
+    'D402': { x: 650, y: 125, zone: 'IP_ROOM' },
+    'E501': { x: 400, y: 100, zone: 'REST1' },
+    'E502': { x: 500, y: 100, zone: 'NCUB' },
+    'E503': { x: 825, y: 125, zone: 'LIB_CLASS' },
+    'F101': { x: 425, y: 550, zone: 'NURSE' },
+    'F102': { x: 575, y: 700, zone: 'KITCHEN' },
+    'F103': { x: 825, y: 700, zone: 'ENGLISH' },
+    'F104': { x: 975, y: 700, zone: 'SCUB' },
+    'G201': { x: 1200, y: 700, zone: 'WET_REST' },
+    'G202': { x: 1300, y: 700, zone: 'DRY_REST' }
 };
 
 // Reverse mapping zone -> room ID
@@ -120,128 +120,149 @@ async function renderMap() {
             <!-- Background Grid -->
             <rect x="-2000" y="-2000" width="6000" height="6000" fill="url(#grid-pattern)" />
 
-            <!-- === LEFT BUILDING === -->
-            <!-- CORRIDORS - Dark Theme -->
-            <!-- Main Vertical Left -->
-            <path class="corridor" d="M 350,150 V 900 H 450 V 450 H 750 V 350 H 450 V 150 Z" />
-            <!-- Main Horizontal Crossing -->
-            <path class="corridor" d="M 100,550 H 1300 V 650 H 350 V 550 Z" />
+            <!-- === CORRIDORS === -->
+            <!-- Main horizontal corridor -->
+            <path class="corridor" d="M 50,400 H 1350 V 500 H 50 Z" />
+            <!-- Vertical corridor left -->
+            <path class="corridor" d="M 250,50 H 350 V 850 H 250 Z" />
+            <!-- Vertical corridor center -->
+            <path class="corridor" d="M 650,200 H 750 V 850 H 650 Z" />
+            <!-- Vertical corridor right -->
+            <path class="corridor" d="M 1050,200 H 1150 V 850 H 1050 Z" />
+            <!-- Top horizontal connector -->
+            <path class="corridor" d="M 350,250 H 1050 V 350 H 350 Z" />
+            <!-- Bottom horizontal connector -->
+            <path class="corridor" d="M 350,650 H 1050 V 750 H 350 Z" />
             
-            <!-- TOP ROW -->
+            <!-- === TOP ROW === -->
             <g class="room-group" data-id="GARDEN" onclick="openRoomDetails('GARDEN')">
-                <rect x="150" y="150" width="200" height="200" rx="4" class="room-shape" />
-                <text x="250" y="230" text-anchor="middle" class="map-label" font-size="20">Garden Room</text>
-                <text x="250" y="250" text-anchor="middle" class="map-sublabel">A101</text>
-                <circle cx="280" cy="160" r="10" class="door" />
+                <rect x="50" y="50" width="200" height="200" rx="4" class="room-shape" />
+                <text x="150" y="140" text-anchor="middle" class="map-label" font-size="22">GARDEN ROOM</text>
+                <text x="150" y="165" text-anchor="middle" class="map-sublabel">A101</text>
             </g>
-             <g class="room-group" data-id="REST1" onclick="openRoomDetails('REST1')">
-                <rect x="450" y="150" width="100" height="100" rx="4" class="room-shape" />
-                <text x="500" y="195" text-anchor="middle" class="map-sublabel">Rest Room</text>
-                <text x="500" y="210" text-anchor="middle" class="map-sublabel">E501</text>
-            </g>
-             <g class="room-group" data-id="NCUB" onclick="openRoomDetails('NCUB')">
-                <rect x="550" y="150" width="100" height="100" rx="4" class="room-shape" />
-                <text x="600" y="195" text-anchor="middle" class="map-sublabel">Cubicle Nord</text>
-                <text x="600" y="210" text-anchor="middle" class="map-sublabel">E502</text>
-            </g>
-            <g class="room-group" data-id="LIB_CLASS" onclick="openRoomDetails('LIB_CLASS')">
-                <rect x="750" y="150" width="150" height="100" rx="4" class="room-shape" />
-                <text x="825" y="195" text-anchor="middle" class="map-sublabel">Library Class</text>
-                <text x="825" y="210" text-anchor="middle" class="map-sublabel">E503</text>
-            </g>
-             <g class="room-group" data-id="IP_ROOM" onclick="openRoomDetails('IP_ROOM')">
-                <rect x="550" y="250" width="200" height="100" rx="4" class="room-shape" />
-                <text x="650" y="295" text-anchor="middle" class="map-label" font-size="16">IP Room</text>
-                <text x="650" y="310" text-anchor="middle" class="map-sublabel">D402</text>
-            </g>
-            <g class="room-group" data-id="LIBRARY" onclick="openRoomDetails('LIBRARY')">
-                <rect x="750" y="250" width="150" height="200" rx="4" class="room-shape" />
-                <text x="825" y="345" text-anchor="middle" class="map-label" font-size="20">Bibliotheque</text>
-                <text x="825" y="365" text-anchor="middle" class="map-sublabel">B203</text>
-            </g>
-
-            <!-- MIDDLE ROW -->
+            
             <g class="room-group" data-id="SERVER" onclick="openRoomDetails('SERVER')">
-                <rect x="50" y="400" width="100" height="150" rx="4" class="room-shape" />
-                <text x="100" y="470" text-anchor="middle" class="map-sublabel">Salle Serveur</text>
-                <text x="100" y="485" text-anchor="middle" class="map-sublabel">D401</text>
+                <rect x="50" y="500" width="200" height="150" rx="4" class="room-shape" />
+                <text x="150" y="570" text-anchor="middle" class="map-sublabel" font-size="12">Salle Serveur</text>
+                <text x="150" y="590" text-anchor="middle" class="map-sublabel">D401</text>
             </g>
-             <g class="room-group" data-id="ORANGE" onclick="openRoomDetails('ORANGE')">
-                <rect x="250" y="450" width="300" height="150" rx="4" class="room-shape" />
-                <text x="400" y="515" text-anchor="middle" class="map-label text-warning" font-size="24">Orange Room</text>
-                <text x="400" y="540" text-anchor="middle" class="map-sublabel">A102</text>
-                <text x="400" y="555" text-anchor="middle" class="map-sublabel" id="label-ORANGE">--</text>
+            
+            <g class="room-group" data-id="REST1" onclick="openRoomDetails('REST1')">
+                <rect x="350" y="50" width="100" height="100" rx="4" class="room-shape" />
+                <text x="400" y="95" text-anchor="middle" class="map-sublabel" font-size="11">Rest Room</text>
+                <text x="400" y="110" text-anchor="middle" class="map-sublabel">E501</text>
             </g>
-             <g class="room-group" data-id="GYM" onclick="openRoomDetails('GYM')">
-                <rect x="650" y="450" width="300" height="250" rx="4" class="room-shape" />
-                <text x="800" y="565" text-anchor="middle" class="map-label" font-size="30">Gymnase</text>
-                <text x="800" y="590" text-anchor="middle" class="map-sublabel">A103</text>
-                <text x="800" y="605" text-anchor="middle" class="map-sublabel" id="label-GYM">--</text>
+            
+            <g class="room-group" data-id="NCUB" onclick="openRoomDetails('NCUB')">
+                <rect x="450" y="50" width="100" height="100" rx="4" class="room-shape" />
+                <text x="500" y="95" text-anchor="middle" class="map-sublabel" font-size="11">Cubicle Nord</text>
+                <text x="500" y="110" text-anchor="middle" class="map-sublabel">E502</text>
+            </g>
+            
+            <g class="room-group" data-id="IP_ROOM" onclick="openRoomDetails('IP_ROOM')">
+                <rect x="550" y="50" width="200" height="150" rx="4" class="room-shape" />
+                <text x="650" y="120" text-anchor="middle" class="map-label" font-size="18">IP ROOM</text>
+                <text x="650" y="145" text-anchor="middle" class="map-sublabel">D402</text>
+            </g>
+            
+            <g class="room-group" data-id="LIB_CLASS" onclick="openRoomDetails('LIB_CLASS')">
+                <rect x="750" y="50" width="150" height="150" rx="4" class="room-shape" />
+                <text x="825" y="115" text-anchor="middle" class="map-sublabel" font-size="12">Library Class</text>
+                <text x="825" y="135" text-anchor="middle" class="map-sublabel">E503</text>
+            </g>
+            
+            <g class="room-group" data-id="LIBRARY" onclick="openRoomDetails('LIBRARY')">
+                <rect x="900" y="50" width="150" height="300" rx="4" class="room-shape" />
+                <text x="975" y="190" text-anchor="middle" class="map-label" font-size="20">BIBLIOTHEQUE</text>
+                <text x="975" y="215" text-anchor="middle" class="map-sublabel">B203</text>
             </g>
 
-            <!-- BOTTOM ROW -->
+            <!-- === MIDDLE ROW === -->
+            <g class="room-group" data-id="ORANGE" onclick="openRoomDetails('ORANGE')">
+                <rect x="350" y="350" width="300" height="100" rx="4" class="room-shape" />
+                <text x="500" y="395" text-anchor="middle" class="map-label" font-size="24">ORANGE ROOM</text>
+                <text x="500" y="420" text-anchor="middle" class="map-sublabel">A102</text>
+                <text x="500" y="440" text-anchor="middle" class="map-sublabel" id="label-ORANGE">--</text>
+            </g>
+            
+            <g class="room-group" data-id="GYM" onclick="openRoomDetails('GYM')">
+                <rect x="750" y="350" width="300" height="300" rx="4" class="room-shape" />
+                <text x="900" y="490" text-anchor="middle" class="map-label" font-size="32">GYMNASE</text>
+                <text x="900" y="520" text-anchor="middle" class="map-sublabel" font-size="14">A103</text>
+                <text x="900" y="545" text-anchor="middle" class="map-sublabel" id="label-GYM">--</text>
+            </g>
+
+            <!-- === BOTTOM ROW === -->
             <g class="room-group" data-id="BLUE" onclick="openRoomDetails('BLUE')">
-                <rect x="100" y="650" width="200" height="150" rx="4" class="room-shape" />
-                <text x="200" y="715" text-anchor="middle" class="map-label text-info" font-size="20">Blue Room</text>
-                <text x="200" y="735" text-anchor="middle" class="map-sublabel">B201</text>
-                <text x="200" y="755" text-anchor="middle" class="map-sublabel" id="label-BLUE">--</text>
+                <rect x="50" y="650" width="200" height="150" rx="4" class="room-shape" />
+                <text x="150" y="715" text-anchor="middle" class="map-label" font-size="20">BLUE ROOM</text>
+                <text x="150" y="740" text-anchor="middle" class="map-sublabel">B201</text>
+                <text x="150" y="760" text-anchor="middle" class="map-sublabel" id="label-BLUE">--</text>
             </g>
-             <g class="room-group" data-id="NURSE" onclick="openRoomDetails('NURSE')">
-                <rect x="350" y="650" width="150" height="80" rx="4" class="room-shape" />
-                <text x="425" y="685" text-anchor="middle" class="map-sublabel">Infirmerie</text>
-                <text x="425" y="700" text-anchor="middle" class="map-sublabel">F101</text>
+            
+            <g class="room-group" data-id="NURSE" onclick="openRoomDetails('NURSE')">
+                <rect x="350" y="500" width="150" height="100" rx="4" class="room-shape" />
+                <text x="425" y="545" text-anchor="middle" class="map-sublabel" font-size="12">Infirmerie</text>
+                <text x="425" y="565" text-anchor="middle" class="map-sublabel">F101</text>
             </g>
+            
             <g class="room-group" data-id="CAFE" onclick="openRoomDetails('CAFE')">
-                <rect x="350" y="730" width="150" height="120" rx="4" class="room-shape" />
-                <text x="425" y="785" text-anchor="middle" class="map-label" font-size="16">Cafeteria</text>
-                <text x="425" y="800" text-anchor="middle" class="map-sublabel">B202</text>
+                <rect x="350" y="600" width="150" height="150" rx="4" class="room-shape" />
+                <text x="425" y="670" text-anchor="middle" class="map-label" font-size="18">CAFETERIA</text>
+                <text x="425" y="695" text-anchor="middle" class="map-sublabel">B202</text>
             </g>
+            
             <g class="room-group" data-id="KITCHEN" onclick="openRoomDetails('KITCHEN')">
-                <rect x="550" y="650" width="120" height="200" rx="4" class="room-shape" />
-                <text x="610" y="745" text-anchor="middle" class="map-label" font-size="16">Cuisine</text>
-                <text x="610" y="760" text-anchor="middle" class="map-sublabel">F102</text>
+                <rect x="500" y="650" width="150" height="100" rx="4" class="room-shape" />
+                <text x="575" y="695" text-anchor="middle" class="map-label" font-size="14">Cuisine</text>
+                <text x="575" y="715" text-anchor="middle" class="map-sublabel">F102</text>
             </g>
+            
             <g class="room-group" data-id="ENGLISH" onclick="openRoomDetails('ENGLISH')">
-                <rect x="670" y="650" width="110" height="120" rx="4" class="room-shape" />
-                <text x="725" y="705" text-anchor="middle" class="map-sublabel">Salle Anglais</text>
-                <text x="725" y="720" text-anchor="middle" class="map-sublabel">F103</text>
+                <rect x="750" y="650" width="150" height="100" rx="4" class="room-shape" />
+                <text x="825" y="695" text-anchor="middle" class="map-sublabel" font-size="12">Salle Anglais</text>
+                <text x="825" y="715" text-anchor="middle" class="map-sublabel">F103</text>
             </g>
+            
             <g class="room-group" data-id="SCUB" onclick="openRoomDetails('SCUB')">
-                <rect x="670" y="770" width="110" height="80" rx="4" class="room-shape" />
-                <text x="725" y="805" text-anchor="middle" class="map-sublabel">Cubicle Sud</text>
-                <text x="725" y="820" text-anchor="middle" class="map-sublabel">F104</text>
+                <rect x="900" y="650" width="150" height="100" rx="4" class="room-shape" />
+                <text x="975" y="695" text-anchor="middle" class="map-sublabel" font-size="12">Cubicle Sud</text>
+                <text x="975" y="715" text-anchor="middle" class="map-sublabel">F104</text>
             </g>
             
             <!-- === RIGHT BUILDING === -->
-             <path class="corridor" d="M 1300,550 H 1550 V 650 H 1300 Z" />
-             <path class="corridor" d="M 1300,550 V 900 H 1350 V 550 Z" />
-             
             <g class="room-group" data-id="GREEN" onclick="openRoomDetails('GREEN')">
-                <rect x="1100" y="450" width="180" height="150" rx="4" class="room-shape" />
-                <text x="1190" y="515" text-anchor="middle" class="map-label text-success" font-size="20">Green Room</text>
-                <text x="1190" y="540" text-anchor="middle" class="map-sublabel">C301</text>
-                <text x="1190" y="560" text-anchor="middle" class="map-sublabel" id="label-GREEN">--</text>
+                <rect x="1150" y="200" width="200" height="150" rx="4" class="room-shape" />
+                <text x="1250" y="265" text-anchor="middle" class="map-label" font-size="22">GREEN ROOM</text>
+                <text x="1250" y="290" text-anchor="middle" class="map-sublabel">C301</text>
+                <text x="1250" y="310" text-anchor="middle" class="map-sublabel" id="label-GREEN">--</text>
             </g>
+            
             <g class="room-group" data-id="ART" onclick="openRoomDetails('ART')">
-                <rect x="1100" y="650" width="180" height="150" rx="4" class="room-shape" />
-                <text x="1190" y="715" text-anchor="middle" class="map-label" font-size="20">Art Room</text>
-                <text x="1190" y="735" text-anchor="middle" class="map-sublabel">C302</text>
-                <text x="1190" y="755" text-anchor="middle" class="map-sublabel" id="label-ART">--</text>
+                <rect x="1150" y="500" width="200" height="150" rx="4" class="room-shape" />
+                <text x="1250" y="565" text-anchor="middle" class="map-label" font-size="22">ART ROOM</text>
+                <text x="1250" y="590" text-anchor="middle" class="map-sublabel">C302</text>
+                <text x="1250" y="610" text-anchor="middle" class="map-sublabel" id="label-ART">--</text>
             </g>
-             <g class="room-group" data-id="WET_REST" onclick="openRoomDetails('WET_REST')">
-                <rect x="1350" y="550" width="150" height="120" rx="4" class="room-shape" />
-                <text x="1425" y="605" text-anchor="middle" class="map-sublabel">Toilettes Humides</text>
-                <text x="1425" y="620" text-anchor="middle" class="map-sublabel">G201</text>
+            
+            <g class="room-group" data-id="WET_REST" onclick="openRoomDetails('WET_REST')">
+                <rect x="1150" y="650" width="100" height="100" rx="4" class="room-shape" />
+                <text x="1200" y="695" text-anchor="middle" class="map-sublabel" font-size="10">Toilettes</text>
+                <text x="1200" y="710" text-anchor="middle" class="map-sublabel" font-size="10">Humides</text>
+                <text x="1200" y="725" text-anchor="middle" class="map-sublabel">G201</text>
             </g>
+            
             <g class="room-group" data-id="DRY_REST" onclick="openRoomDetails('DRY_REST')">
-                <rect x="1350" y="670" width="150" height="120" rx="4" class="room-shape" />
-                <text x="1425" y="725" text-anchor="middle" class="map-sublabel">Toilettes Seches</text>
-                <text x="1425" y="740" text-anchor="middle" class="map-sublabel">G202</text>
+                <rect x="1250" y="650" width="100" height="100" rx="4" class="room-shape" />
+                <text x="1300" y="695" text-anchor="middle" class="map-sublabel" font-size="10">Toilettes</text>
+                <text x="1300" y="710" text-anchor="middle" class="map-sublabel" font-size="10">Seches</text>
+                <text x="1300" y="725" text-anchor="middle" class="map-sublabel">G202</text>
             </g>
-             <g class="room-group" data-id="CHEMISTRY" onclick="openRoomDetails('CHEMISTRY')">
-                <rect x="1500" y="550" width="100" height="240" rx="4" class="room-shape" />
-                <text x="1540" y="670" text-anchor="middle" class="map-label" font-size="14" transform="rotate(-90, 1540, 670)">Labo Chimie - C303</text>
-                <text x="1565" y="670" text-anchor="middle" class="map-sublabel" id="label-CHEMISTRY">--</text>
+            
+            <g class="room-group" data-id="CHEMISTRY" onclick="openRoomDetails('CHEMISTRY')">
+                <rect x="1350" y="200" width="150" height="550" rx="4" class="room-shape" />
+                <text x="1425" y="470" text-anchor="middle" class="map-label" font-size="20" transform="rotate(-90, 1425, 470)">LABO CHIMIE - C303</text>
+                <text x="1470" y="475" text-anchor="middle" class="map-sublabel" id="label-CHEMISTRY">--</text>
             </g>
 
              <!-- Alert Overlay Layer -->
