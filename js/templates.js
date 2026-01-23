@@ -42,13 +42,13 @@ const Templates = {
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center bg-white p-4 rounded shadow-sm border-0 card-custom shimmer-effect">
             <div>
-                <h4 class="fw-bold text-dark mb-1">Bonjour, Admin 👋</h4>
+                <h4 class="fw-bold text-dark mb-1" id="dashboard-greeting">Bonjour 👋</h4>
                 <p class="text-muted mb-0">Voici le résumé de votre activité sur le campus aujourd'hui.</p>
             </div>
             <div class="d-flex gap-3">
                  <div class="text-end">
-                    <h6 class="fw-bold mb-0 text-primary">09:42</h6>
-                    <small class="text-muted">Mardi 24 Oct</small>
+                    <h6 class="fw-bold mb-0 text-primary" id="dashboard-time">--:--</h6>
+                    <small class="text-muted" id="dashboard-date">-- --</small>
                  </div>
                  <button class="btn btn-primary shadow-sm" onclick="location.hash='#booking'"><i class="bi bi-plus-lg me-2"></i>Nouvelle Réservation</button>
             </div>
@@ -462,13 +462,13 @@ const Templates = {
     <!-- Profile Sidebar -->
     <div class="col-md-4">
         <div class="card-custom p-4 border-0 shadow-sm mb-4 text-center">
-            <div class="avatar-circle bg-primary text-white mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">AD</div>
-            <h5 class="fw-bold mb-1">Admin Campus</h5>
-            <span class="badge bg-primary-subtle text-primary rounded-pill mb-3">Personnel Administratif</span>
+            <div class="avatar-circle bg-primary text-white mx-auto mb-3" id="settings-avatar" style="width: 100px; height: 100px; font-size: 2.5rem;">AD</div>
+            <h5 class="fw-bold mb-1" id="settings-name">Admin Campus</h5>
+            <span class="badge bg-primary-subtle text-primary rounded-pill mb-3" id="settings-role-badge">Personnel Administratif</span>
             
             <div class="text-start mt-4">
                 <small class="text-muted text-uppercase fw-bold ls-1 d-block mb-3">Droits d'accès</small>
-                <ul class="list-unstyled small text-secondary">
+                <ul class="list-unstyled small text-secondary" id="settings-rights-list">
                     <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Administration Système</li>
                     <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Gestion Incidents (Full)</li>
                     <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Accès Salles (Master)</li>
@@ -486,11 +486,11 @@ const Templates = {
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted">Adresse Email</label>
-                    <input type="email" class="form-control" value="admin@smartcampus.fr">
+                    <input type="email" class="form-control" id="settings-email" value="..." disabled>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small fw-bold text-muted">Rôle</label>
-                    <input type="text" class="form-control" value="Administrateur" disabled>
+                    <input type="text" class="form-control" id="settings-role-input" value="..." disabled>
                 </div>
             </div>
             
