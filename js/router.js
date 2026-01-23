@@ -46,7 +46,7 @@ const Router = {
         }
 
         // Permission Guard - Vérifier les pages réservées aux admins
-        const adminOnlyPages = ['maintenance', 'admin'];
+        const adminOnlyPages = ['admin'];
         if (adminOnlyPages.includes(routeName) && !this.isAdmin()) {
             alert('Accès refusé : cette page est réservée aux administrateurs.');
             location.hash = '#dashboard';
@@ -169,15 +169,13 @@ const Router = {
     updateSidebarMenu() {
         const isAdmin = this.isAdmin();
         
-        // Masquer les pages admin pour les utilisateurs lambda
-        const maintenanceLink = document.querySelector('a[href="#maintenance"]');
+        // Masquer uniquement la page admin pour les utilisateurs lambda
+        // La page maintenance est accessible à tous pour créer/voir leurs tickets
         const adminLink = document.querySelector('a[href="#admin"]');
         
         if (!isAdmin) {
-            if (maintenanceLink) maintenanceLink.style.display = 'none';
             if (adminLink) adminLink.style.display = 'none';
         } else {
-            if (maintenanceLink) maintenanceLink.style.display = '';
             if (adminLink) adminLink.style.display = '';
         }
     },

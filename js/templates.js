@@ -59,7 +59,7 @@ const Templates = {
     <div class="col-lg-6">
         <div class="card-custom p-4 h-100 border-0 shadow-sm bg-white">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-0"><i class="bi bi-calendar-check me-2"></i>Mes Réservations</h6>
+                <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-0" id="dashboard-bookings-title"><i class="bi bi-calendar-check me-2"></i>Mes Réservations</h6>
                 <span class="badge bg-light text-dark border">0 à venir</span>
             </div>
             
@@ -85,7 +85,7 @@ const Templates = {
                 </div>
                 
                 <div class="position-relative" style="z-index: 1;">
-                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3"><i class="bi bi-ticket-perforated me-2"></i>Tickets Actifs</h6>
+                    <h6 class="fw-bold text-uppercase text-muted small ls-1 mb-3" id="dashboard-tickets-title"><i class="bi bi-ticket-perforated me-2"></i>Tickets Actifs</h6>
                     
                     <div id="dashboard-tickets">
                         <!-- Les tickets seront chargés dynamiquement -->
@@ -284,6 +284,18 @@ const Templates = {
 <div class="row g-4 h-100">
     <!-- Filters Sidebar -->
     <div class="col-md-4 col-lg-3">
+        <!-- Mes Réservations -->
+        <div class="card-custom p-4 border-0 shadow-sm bg-white mb-3">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3"><i class="bi bi-calendar-check me-2"></i>Mes Réservations</h6>
+            <div id="my-bookings-list">
+                <div class="text-center py-3 text-muted">
+                    <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                    <p class="small">Chargement...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
         <div class="card-custom p-4 border-0 shadow-sm h-100 bg-white">
             <h6 class="fw-bold text-uppercase text-muted small mb-4"><i class="bi bi-sliders me-2"></i>Filtres</h6>
             

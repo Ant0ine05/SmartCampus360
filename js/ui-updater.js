@@ -8,6 +8,9 @@ const UIUpdater = {
      * Mettre à jour la page de réservation avec les vraies salles
      */
     async updateBookingPage() {
+        // Charger les réservations de l'utilisateur
+        await this.updateMyBookingsPage();
+        
         const grid = document.getElementById('booking-results-grid');
         if (!grid) return;
 
@@ -87,6 +90,171 @@ const UIUpdater = {
     },
 
     /**
+     * Afficher les réservations de l'utilisateur dans la page booking
+     */
+    async updateMyBookingsPage() {
+        const container = document.getElementById('my-bookings-list');
+        if (!container) return;
+
+        try {
+            const currentUser = this.getCurrentUser();
+            if (!currentUser) return;
+
+            const bookings = await API.getBookings();
+            const isAdmin = currentUser.role === 'admin';
+            
+            // Filtrer selon le rôle
+            let userBookings = bookings;
+            if (!isAdmin) {
+                userBookings = bookings.filter(b => b.user_id === currentUser.id);
+            }
+
+            if (userBookings.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <i class="bi bi-calendar-x fs-4 opacity-25"></i>
+                        <p class="small mt-2 mb-0">Aucune réservation</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = userBookings.slice(0, 5).map(booking => {
+                const startDate = new Date(booking.start_time);
+                const day = startDate.getDate();
+                const month = startDate.toLocaleString('fr-FR', { month: 'short' });
+                const time = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                const endTime = new Date(booking.end_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                const statusMap = {
+                    'confirme': { class: 'success', icon: 'check-circle' },
+                    'en_attente': { class: 'warning', icon: 'clock' },
+                    'annule': { class: 'danger', icon: 'x-circle' }
+                };
+                const status = statusMap[booking.status] || statusMap['confirme'];
+
+                return `
+                <div class="card border-0 shadow-sm mb-2 hover-scale" style="cursor: pointer;" onclick="UIUpdater.showBookingDetail(${booking.id})">
+                    <div class="card-body p-2">
+                        <div class="d-flex align-items-center">
+                            <div class="date-box bg-primary-subtle text-primary rounded text-center me-2" style="min-width: 40px; padding: 4px;">
+                                <small class="d-block fw-bold" style="font-size: 10px;">${month.toUpperCase()}</small>
+                                <span class="d-block fw-bold">${day}</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-0 small">${booking.room_name || booking.room_id}</h6>
+                                <small class="text-muted" style="font-size: 11px;">
+                                    <i class="bi bi-clock me-1"></i>${time}-${endTime}
+                                </small>
+                                ${isAdmin ? `<br><small class="text-muted" style="font-size: 10px;"><i class="bi bi-person me-1"></i>${booking.user_name || 'Inconnu'}</small>` : ''}
+                            </div>
+                            <i class="bi bi-${status.icon} text-${status.class}"></i>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Erreur chargement réservations:', error);
+        }
+    },
+
+    /**
+     * Afficher le détail d'une réservation dans un modal
+     */
+    async showBookingDetail(bookingId) {
+        try {
+            const bookings = await API.getBookings();
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            const startDate = new Date(booking.start_time);
+            const endDate = new Date(booking.end_time);
+            const dateStr = startDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const startTime = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            const endTime = endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+            const statusMap = {
+                'confirme': { class: 'success', label: 'Confirmée' },
+                'en_attente': { class: 'warning', label: 'En attente' },
+                'annule': { class: 'danger', label: 'Annulée' }
+            };
+            const status = statusMap[booking.status] || statusMap['confirme'];
+
+            const currentUser = this.getCurrentUser();
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            const modal = `
+                <div class="modal fade" id="bookingDetailModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Détail de la réservation</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <span class="badge bg-${status.class}">${status.label}</span>
+                                </div>
+                                
+                                <h6 class="fw-bold mb-3">${booking.room_name || booking.room_id}</h6>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted d-block"><i class="bi bi-calendar me-2"></i>${dateStr}</small>
+                                    <small class="text-muted d-block"><i class="bi bi-clock me-2"></i>${startTime} - ${endTime}</small>
+                                    <small class="text-muted d-block"><i class="bi bi-geo-alt me-2"></i>${booking.room_id}</small>
+                                </div>
+
+                                ${isAdmin ? `
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-person me-2"></i>Réservé par: <strong>${booking.user_name || 'Inconnu'}</strong>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="alert alert-light">
+                                    <small class="text-muted"><i class="bi bi-info-circle me-2"></i>ID de réservation: #${booking.id}</small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                ${booking.status === 'confirme' ? `
+                                    <button type="button" class="btn btn-danger" onclick="UIUpdater.cancelBookingFromDetail(${booking.id})">
+                                        <i class="bi bi-trash me-1"></i>Annuler
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Supprimer l'ancien modal s'il existe
+            const oldModal = document.getElementById('bookingDetailModal');
+            if (oldModal) oldModal.remove();
+
+            // Ajouter le nouveau
+            document.body.insertAdjacentHTML('beforeend', modal);
+
+            // Afficher
+            const modalEl = new bootstrap.Modal(document.getElementById('bookingDetailModal'));
+            modalEl.show();
+        } catch (error) {
+            console.error('Erreur affichage détail réservation:', error);
+        }
+    },
+
+    /**
+     * Annuler une réservation depuis le modal de détail
+     */
+    async cancelBookingFromDetail(bookingId) {
+        const modalEl = bootstrap.Modal.getInstance(document.getElementById('bookingDetailModal'));
+        if (modalEl) modalEl.hide();
+        
+        await this.cancelBooking(bookingId);
+        await this.updateMyBookingsPage();
+    },
+
+    /**
      * Mettre à jour la page de maintenance avec les vrais tickets
      */
     async updateMaintenancePage() {
@@ -95,7 +263,17 @@ const UIUpdater = {
 
         try {
             const allTickets = await API.getTickets();
-            const activeTickets = allTickets.filter(t => t.status !== 'resolu');
+            const currentUser = this.getCurrentUser();
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            // Filtrer les tickets actifs
+            let activeTickets = allTickets.filter(t => t.status !== 'resolu');
+            
+            // Si user normal, filtrer uniquement ses tickets
+            if (!isAdmin && currentUser) {
+                activeTickets = activeTickets.filter(t => t.user_id === currentUser.id);
+            }
+            // Si admin, afficher tous les tickets actifs
 
             if (activeTickets.length === 0) {
                 container.innerHTML = `
@@ -124,6 +302,16 @@ const UIUpdater = {
 
                 const timeAgo = this.getTimeAgo(new Date(ticket.created_at));
 
+                // Afficher qui a créé le ticket si admin
+                const creatorInfo = isAdmin && ticket.firstname ? `
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle sm bg-secondary-subtle text-secondary me-2" style="width:24px;height:24px;font-size:10px;">
+                            ${ticket.firstname[0]}${ticket.lastname[0]}
+                        </div>
+                        <small class="text-muted">Créé par ${ticket.firstname} ${ticket.lastname}</small>
+                    </div>
+                ` : '<small class="text-muted fst-italic">Mon ticket</small>';
+
                 return `
                 <div class="col-md-6">
                     <div class="card p-3 border-0 shadow-sm h-100 hover-lift">
@@ -134,21 +322,18 @@ const UIUpdater = {
                         <h6 class="fw-bold mb-1">${ticket.title}</h6>
                         <p class="text-muted small mb-3">${ticket.description || 'Pas de description'}</p>
                         <div class="d-flex align-items-center justify-content-between mt-auto">
-                            <div class="d-flex align-items-center">
-                                ${ticket.firstname ? `
-                                    <div class="avatar-circle sm bg-secondary-subtle text-secondary me-2" style="width:24px;height:24px;font-size:10px;">
-                                        ${ticket.firstname[0]}${ticket.lastname[0]}
-                                    </div>
-                                    <small class="text-muted">${ticket.firstname} ${ticket.lastname}</small>
-                                ` : '<small class="text-muted fst-italic">Non assigné</small>'}
-                            </div>
+                            ${creatorInfo}
                             <small class="text-muted"><i class="bi bi-clock me-1"></i>${timeAgo}</small>
                         </div>
-                        ${ticket.status === 'nouveau' ? `
+                        ${ticket.status === 'nouveau' && isAdmin ? `
                             <button class="btn btn-sm btn-primary mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'en_cours')">
                                 <i class="bi bi-play-fill me-1"></i>Prendre en charge
                             </button>
-                        ` : ticket.status === 'en_cours' ? `
+                        ` : ticket.status === 'en_cours' && isAdmin ? `
+                            <button class="btn btn-sm btn-success mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'resolu')">
+                                <i class="bi bi-check-lg me-1"></i>Marquer comme résolu
+                            </button>
+                        ` : !isAdmin ? `
                             <button class="btn btn-sm btn-success mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'resolu')">
                                 <i class="bi bi-check-lg me-1"></i>Marquer comme résolu
                             </button>
@@ -171,7 +356,17 @@ const UIUpdater = {
 
         try {
             const allTickets = await API.getTickets();
-            const resolvedTickets = allTickets.filter(t => t.status === 'resolu');
+            const currentUser = this.getCurrentUser();
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            
+            // Filtrer les tickets résolus
+            let resolvedTickets = allTickets.filter(t => t.status === 'resolu');
+            
+            // Si user normal, filtrer uniquement ses tickets
+            if (!isAdmin && currentUser) {
+                resolvedTickets = resolvedTickets.filter(t => t.user_id === currentUser.id);
+            }
+            // Si admin, afficher tout l'historique
 
             if (resolvedTickets.length === 0) {
                 container.innerHTML = `
@@ -246,12 +441,33 @@ const UIUpdater = {
     async updateBookingsList() {
         try {
             const bookings = await API.getBookings();
-            const recentBookings = bookings.slice(0, 3);
+            const currentUser = this.getCurrentUser();
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            // Filtrer selon le rôle
+            let displayBookings = bookings;
+            if (!isAdmin && currentUser) {
+                // User normal : seulement ses propres réservations
+                displayBookings = bookings.filter(b => b.user_id === currentUser.id);
+            }
+            // Admin : toutes les réservations
+
+            const recentBookings = displayBookings.slice(0, 3);
+
+            // Mettre à jour le titre selon le rôle
+            const titleEl = document.getElementById('dashboard-bookings-title');
+            if (titleEl) {
+                if (isAdmin) {
+                    titleEl.innerHTML = '<i class="bi bi-calendar-check me-2"></i>Toutes les Réservations';
+                } else {
+                    titleEl.innerHTML = '<i class="bi bi-calendar-check me-2"></i>Mes Réservations';
+                }
+            }
 
             // Mettre à jour le compteur
             const badge = document.querySelector('.badge.bg-light.text-dark.border');
             if (badge && badge.textContent.includes('à venir')) {
-                badge.textContent = `${bookings.length} à venir`;
+                badge.textContent = `${displayBookings.length} à venir`;
             }
 
             // Afficher les 3 prochaines réservations dans le dashboard
@@ -263,6 +479,11 @@ const UIUpdater = {
                     const day = startDate.getDate();
                     const time = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
                     const endTime = new Date(booking.end_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+                    // Afficher le nom de l'utilisateur si admin
+                    const userInfo = isAdmin ? `<div class="text-muted small">
+                                        <i class="bi bi-person me-1"></i>${booking.user_name || 'Inconnu'}
+                                    </div>` : '';
 
                     return `
                     <div class="card border-0 shadow-sm bg-light hover-scale" id="resa-${booking.id}">
@@ -277,9 +498,7 @@ const UIUpdater = {
                                     <div class="text-muted small">
                                         <i class="bi bi-geo-alt me-1"></i>${booking.room_id} • ${time} - ${endTime}
                                     </div>
-                                    <div class="text-muted small">
-                                        <i class="bi bi-person me-1"></i>${booking.user_name || 'Inconnu'}
-                                    </div>
+                                    ${userInfo}
                                 </div>
                             </div>
                             <div class="dropdown">
@@ -324,7 +543,29 @@ const UIUpdater = {
     async updateDashboardTickets() {
         try {
             const tickets = await API.getTickets();
-            const activeTickets = tickets.filter(t => t.status !== 'resolu').slice(0, 2);
+            const currentUser = this.getCurrentUser();
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            // Filtrer selon le rôle
+            let displayTickets = tickets.filter(t => t.status !== 'resolu');
+            if (!isAdmin && currentUser) {
+                // User normal : seulement ses propres tickets
+                displayTickets = displayTickets.filter(t => t.user_id === currentUser.id);
+            }
+            // Admin : tous les tickets actifs
+
+            const activeTickets = displayTickets.slice(0, 2);
+
+            // Mettre à jour le titre selon le rôle
+            const titleEl = document.getElementById('dashboard-tickets-title');
+            if (titleEl) {
+                if (isAdmin) {
+                    titleEl.innerHTML = '<i class="bi bi-ticket-perforated me-2"></i>Tous les Tickets Actifs';
+                } else {
+                    titleEl.innerHTML = '<i class="bi bi-ticket-perforated me-2"></i>Mes Tickets Actifs';
+                }
+            }
+
             const container = document.getElementById('dashboard-tickets');
             if (!container) return;
 
@@ -345,6 +586,13 @@ const UIUpdater = {
                 };
                 const status = statusMap[ticket.status] || statusMap['nouveau'];
 
+                // Afficher le nom de l'utilisateur si admin
+                const userInfo = isAdmin && ticket.firstname ? `
+                    <div class="text-muted small mt-1">
+                        <i class="bi bi-person me-1"></i>${ticket.firstname} ${ticket.lastname}
+                    </div>
+                ` : '';
+
                 return `
                 <div class="card bg-${status.class}-subtle border-0 mb-2">
                     <div class="card-body">
@@ -354,6 +602,7 @@ const UIUpdater = {
                         </div>
                         <h6 class="fw-bold text-dark mb-1">${ticket.title}</h6>
                         <small class="text-muted">${ticket.location || 'Non spécifié'}</small>
+                        ${userInfo}
                     </div>
                 </div>
                 `;
@@ -610,6 +859,19 @@ const UIUpdater = {
     },
 
     /**
+     * Récupérer l'utilisateur connecté
+     */
+    getCurrentUser() {
+        const token = localStorage.getItem('sc360_auth');
+        if (!token) return null;
+        try {
+            return JSON.parse(token);
+        } catch {
+            return null;
+        }
+    },
+
+    /**
      * Mettre à jour le profil utilisateur (Navbar & Greeting & Settings)
      */
     updateUserProfile() {
@@ -642,7 +904,8 @@ const UIUpdater = {
             // --- 2. Dashboard Greetings ---
             const dashGreeting = document.getElementById('dashboard-greeting');
             if (dashGreeting) {
-                dashGreeting.textContent = `Bonjour, ${user.firstname} 👋`;
+                // Afficher "Bonjour, [Prénom]" au lieu de "Tableau de bord"
+                dashGreeting.innerHTML = `Bonjour, ${user.firstname} 👋`;
             }
 
             // --- 3. Settings Page Updates ---
