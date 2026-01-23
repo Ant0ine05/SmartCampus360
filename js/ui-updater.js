@@ -333,9 +333,9 @@ const UIUpdater = {
                             <button class="btn btn-sm btn-success mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'resolu')">
                                 <i class="bi bi-check-lg me-1"></i>Marquer comme résolu
                             </button>
-                        ` : !isAdmin ? `
-                            <button class="btn btn-sm btn-success mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'resolu')">
-                                <i class="bi bi-check-lg me-1"></i>Marquer comme résolu
+                        ` : !isAdmin && ticket.status === 'nouveau' ? `
+                            <button class="btn btn-sm btn-warning mt-3 w-100" onclick="UIUpdater.updateTicket(${ticket.id}, 'en_cours')">
+                                <i class="bi bi-play-fill me-1"></i>Mettre en cours
                             </button>
                         ` : ''}
                     </div>
